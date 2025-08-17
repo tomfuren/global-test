@@ -54,10 +54,10 @@
             
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; 2024 Global Plate. All rights reserved.</p>
+                    <p class="mb-0">&copy; 2025 Global Plate. All rights reserved.</p>
                 </div>
                     <div class="col-md-6 text-md-end">
-                    <p class="mb-0">Made with <i class="fas fa-heart text-danger"></i> for international students</p>
+                    <p class="mb-0">Made for international students</p>
                 </div>
             </div>
         </div>
