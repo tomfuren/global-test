@@ -43,9 +43,9 @@
                 <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
                     <h6>Follow</h6>
                     <div class="social-links">
-                    <a href="#" class="text-light me-3"><i class="fab fa-facebook fa-lg"></i></a>
-                    <a href="#" class="text-light me-3"><i class="fab fa-instagram fa-lg"></i></a>
-                    <a href="#" class="text-light"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="https://www.facebook.com/" class="text-light me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                    <a href="https://www.instagram.com/" class="text-light me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                    <a href="https://www.youtube.com/" class="text-light"><i class="fab fa-youtube fa-lg"></i></a>
                     </div>
                 </div>
             </div>
@@ -71,16 +71,16 @@ export default {
 </script>
 
 <style scoped>
-.social-links a {
-  transition: all 0.3s ease;
-}
+    .social-links a {
+        transition: all 0.3s ease;
+    }
 
-.social-links a:hover {
-  color: #007bff !important;
-  transform: translateY(-2px);
-}
+    .social-links a:hover {
+        color: #007bff !important;
+        transform: translateY(-2px);
+    }
 
-footer a:hover {
-  color: #007bff !important;
-}
+    footer a:hover {
+        color: #007bff !important;
+    }
 </style>
