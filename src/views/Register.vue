@@ -10,6 +10,12 @@
                                 <p class="text-muted">Create your account</p>
                             </div>
 
+                            <!-- エラー・成功メッセージ -->
+                            <div v-if="message" :class="messageClass" class="alert" role="alert">
+                                <i :class="messageIcon" class="me-2"></i>
+                                {{ message }}
+                            </div>
+
                             <form @submit.prevent="handleRegister">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -20,7 +26,7 @@
                                             :class="{ 'is-invalid': errors.firstName }"
                                             id="firstName"
                                             v-model="formData.firstName"
-                                            placeholder="John"
+                                            placeholder="First name"
                                             autocomplete="given-name"
                                             @blur="validateFirstName(true)"
                                             @input="validateFirstName(false)"
@@ -37,7 +43,7 @@
                                             :class="{ 'is-invalid': errors.lastName }"
                                             id="lastName"
                                             v-model="formData.lastName"
-                                            placeholder="Doe"
+                                            placeholder="Last Name"
                                             autocomplete="family-name"
                                             @blur="validateLastName(true)"
                                             @input="validateLastName(false)"
@@ -197,7 +203,7 @@
 </template>
 
 <script setup>
-    import { ref, reactive } from 'vue'
+    import { ref, computed } from 'vue'
     import { useRouter } from 'vue-router'
 
     const router = useRouter()
@@ -225,6 +231,26 @@
     })
 
     const isLoading = ref(false)
+    const message = ref('')
+    const messageType = ref('')
+
+    // メッセージ表示用のcomputed
+    const messageClass = computed(() => {
+    return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
+    })
+
+    const messageIcon = computed(() => {
+    return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
+    })
+
+    // LocalStorageでのメッセージ用
+    const showMessage = (msg, type = 'success') => {
+    message.value = msg
+    messageType.value = type
+    setTimeout(() => {
+        message.value = ''
+    }, 3000)
+    }
 
     const validateFirstName = (blur) => {
     if (!formData.value.firstName.trim()) {
@@ -312,6 +338,7 @@
     }
     }
 
+    // Local Storageを使ったユーザー検証
     const handleRegister = async () => {
         // すべてのフィールドを検証
         validateFirstName(true)
@@ -332,16 +359,47 @@
             
             try {
                 // TODO: 後でFirebase Authentication実装
-                console.log('Register attempt:', formData.value)
+                // LocalStorageから既存ユーザーを取得
+                const users = JSON.parse(localStorage.getItem('users')) || []
                 
-                // 仮の処理
-                await new Promise(resolve => setTimeout(resolve, 1000))
+                // // 仮の処理
+                // await new Promise(resolve => setTimeout(resolve, 1000))
+                
+                // // 登録成功後はログインページへ
+                // router.push('/login')
+
+                // メール重複チェック
+                const emailExists = users.some(user => user.email === formData.value.email)
+                if (emailExists) {
+                    showMessage('Email already exists', 'error')
+                    return
+                }
+                
+                // 新しいユーザーを作成
+                const newUser = {
+                    id: Date.now().toString(),
+                    firstName: formData.value.firstName,
+                    lastName: formData.value.lastName,
+                    email: formData.value.email,
+                    country: formData.value.country,
+                    university: formData.value.university,
+                    createdAt: new Date().toISOString()
+                }
+                
+                // ユーザーをLocalStorageに追加
+                users.push(newUser)
+                localStorage.setItem('users', JSON.stringify(users))
+                
+                showMessage('Registration successful!', 'success')
                 
                 // 登録成功後はログインページへ
-                router.push('/login')
+                setTimeout(() => {
+                    router.push('/login')
+                }, 1500)
             
             } catch (error) {
                 console.error('Register error:', error)
+                showMessage('Registration failed. Please try again.', 'error')
             } finally {
                 isLoading.value = false
             }
