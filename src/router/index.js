@@ -10,6 +10,8 @@ const Recipes = () => import('../views/Recipes.vue')
 const Groups = () => import('../views/Groups.vue')
 const Events = () => import('../views/Events.vue')
 const Profile = () => import('../views/Profile.vue')
+const TermsOfService = () => import('../views/TermsOfService.vue')
+const PrivacyPolicy = () => import('../views/PrivacyPolicy.vue')
 const NotFound = () => import('../views/NotFound.vue')
 
 const routes = [
@@ -85,6 +87,22 @@ const routes = [
         meta: {
         title: 'Profile - Global Plate',
         requiresAuth: true
+        }
+    },
+    {
+        path: '/terms',
+        name: 'TermsOfService',
+        component: TermsOfService,
+        meta: {
+        title: 'Terms of Service - Global Plate'
+        }
+    },
+    {
+        path: '/privacy',
+        name: 'PrivacyPolicy',
+        component: PrivacyPolicy,
+        meta: {
+        title: 'Privacy Policy - Global Plate'
         }
     },
     {

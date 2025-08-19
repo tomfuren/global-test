@@ -34,8 +34,8 @@
                 <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
                     <h6>legal information</h6>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-light text-decoration-none">terms of service</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">privacy</a></li>
+                        <li><router-link to="/terms" class="text-light text-decoration-none">Terms of Service</router-link></li>
+                        <li><router-link to="/privacy" class="text-light text-decoration-none">Privacy Policy</router-link></li>
                         <li><a href="#" class="text-light text-decoration-none">Cookie</a></li>
                     </ul>
                 </div>

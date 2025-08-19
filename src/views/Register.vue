@@ -164,8 +164,8 @@
                                     >
                                     <label class="form-check-label" for="agree">
                                         I agree to the 
-                                        <a href="#" class="text-decoration-none">Terms of Service</a> and
-                                        <a href="#" class="text-decoration-none">Privacy Policy</a>
+                                        <router-link to="/terms" class="text-decoration-none">Terms of Service</router-link> and
+                                        <router-link to="/privacy" class="text-decoration-none">Privacy Policy</router-link>
                                     </label>
                                     <div v-if="errors.agree" class="invalid-feedback">
                                         {{ errors.agree }}
