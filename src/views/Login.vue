@@ -181,7 +181,8 @@
                     // リダイレクト
                     const redirectTo = route.query.redirect || '/dashboard'
                     setTimeout(() => {
-                        router.push(redirectTo)
+                        window.location.href = redirectTo  // router.pushの代わり
+                        // router.push(redirectTo)
                     }, 1000)
                 } else {
                     showMessage('Invalid email or password', 'error')

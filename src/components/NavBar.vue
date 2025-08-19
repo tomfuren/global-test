@@ -143,45 +143,88 @@
 </template>
 
 <script>
-export default {
-  name: 'NavBar',
-  data() {
-    return {
-      hasNotifications: true // TODO: 実際の通知状態と連携
+    import { ref, computed, onMounted } from 'vue'
+    import { useRouter, useRoute } from 'vue-router'
+
+    const router = useRouter()
+    const route = useRoute()
+
+    const hasNotifications = ref(true)
+    const currentUser = ref(null)
+
+    // LocalStorageから現在のユーザーを読み込み
+    onMounted(() => {
+    currentUser.value = JSON.parse(localStorage.getItem('currentUser'))
+    })
+
+    const isAuthenticated = computed(() => {
+    return !!currentUser.value
+    })
+
+    const userName = computed(() => {
+    if (!currentUser.value) return 'Guest'
+    return `${currentUser.value.firstName} ${currentUser.value.lastName}`.trim()
+    })
+
+    const userAvatar = computed(() => {
+    if (currentUser.value) {
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.value)}&size=32&background=007bff&color=ffffff`
     }
-  },
-  computed: {
-    isAuthenticated() {
-      // TODO: Firebase Auth実装後に置き換え
-      return localStorage.getItem('isAuthenticated') === 'true'
-    },
-    userName() {
-      // TODO: Firebase Authから実際のユーザー名を取得
-      return 'UserName'
-    },
-    userAvatar() {
-      // TODO: Firebase Authから実際のアバターを取得
-      return 'https://via.placeholder.com/32x32?text=U'
+    return 'https://ui-avatars.com/api/?name=Guest&size=32&background=6c757d&color=ffffff'
+    })
+
+    const handleLogout = () => {
+    localStorage.removeItem('currentUser')
+    currentUser.value = null
+    
+    // ダッシュボードページにいる場合はホームにリダイレクト
+    if (route.meta.requiresAuth) {
+        router.push('/')
     }
-  },
-  methods: {
-    async handleLogout() {
-      try {
-        // TODO: Firebase Auth logout実装
-        localStorage.removeItem('isAuthenticated')
+    
+    console.log('ログアウト完了')
+    }
+
+// Firebase用のログイン機能を一旦、コメントアウト
+// export default {
+//   name: 'NavBar',
+//   data() {
+//     return {
+//       hasNotifications: true // TODO: 実際の通知状態と連携
+//     }
+//   },
+//   computed: {
+//     isAuthenticated() {
+//       // TODO: Firebase Auth実装後に置き換え
+//       return localStorage.getItem('isAuthenticated') === 'true'
+//     },
+//     userName() {
+//       // TODO: Firebase Authから実際のユーザー名を取得
+//       return 'UserName'
+//     },
+//     userAvatar() {
+//       // TODO: Firebase Authから実際のアバターを取得
+//       return 'https://via.placeholder.com/32x32?text=U'
+//     }
+//   },
+//   methods: {
+//     async handleLogout() {
+//       try {
+//         // TODO: Firebase Auth logout実装
+//         localStorage.removeItem('isAuthenticated')
         
-        // ダッシュボードページにいる場合はホームにリダイレクト
-        if (this.$route.meta.requiresAuth) {
-          this.$router.push('/')
-        }
+//         // ダッシュボードページにいる場合はホームにリダイレクト
+//         if (this.$route.meta.requiresAuth) {
+//           this.$router.push('/')
+//         }
         
-        console.log('ログアウト完了')
-      } catch (error) {
-        console.error('ログアウトエラー:', error)
-      }
-    }
-  }
-}
+//         console.log('ログアウト完了')
+//       } catch (error) {
+//         console.error('ログアウトエラー:', error)
+//       }
+//     }
+//   }
+// }
 </script>
 
 <style scoped>

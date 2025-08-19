@@ -127,11 +127,22 @@ const router = createRouter({
   }
 })
 
-// 認証状態チェック（後でFirebase Authと連携）
+// LocalStorageの認証チェック
 function isAuthenticated() {
-  // TODO: Firebase Auth実装後に置き換え
-  return localStorage.getItem('isAuthenticated') === 'true'
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'))
+    return !!currentUser
+  } catch {
+    return false
+  }
 }
+
+// Firebase 対応のLogin認証を一旦コメントアウト
+// // 認証状態チェック（後でFirebase Authと連携）
+// function isAuthenticated() {
+//   // TODO: Firebase Auth実装後に置き換え
+//   return localStorage.getItem('isAuthenticated') === 'true'
+// }
 
 // ナビゲーションガード
 router.beforeEach((to, from, next) => {
