@@ -10,6 +10,12 @@
                                 <p class="text-muted">Sign in to your account</p>
                             </div>
 
+                            <!-- エラー・成功メッセージ -->
+                            <div v-if="message" :class="messageClass" class="alert" role="alert">
+                                <i :class="messageIcon" class="me-2"></i>
+                                {{ message }}
+                            </div>
+
                             <form @submit.prevent="handleLogin">
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email address</label>
