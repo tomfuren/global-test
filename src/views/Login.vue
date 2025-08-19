@@ -2,7 +2,7 @@
     <div class="login-page bg-light min-vh-100 d-flex align-items-center">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-5 col-md-7">
+                <div class="col-xl-4 col-lg-5 col-md-7 col-sm-9">
                     <div class="card shadow-lg border-0">
                         <div class="card-body p-5">
                             <div class="text-center mb-4">
@@ -167,7 +167,6 @@
         if (!errors.value.email && !errors.value.password) {
             isLoading.value = true
             
-            // LocalStorageへの対応
             try {
                 // LocalStorageから登録済みユーザーを取得
                 const users = JSON.parse(localStorage.getItem('users')) || []
@@ -176,13 +175,16 @@
                 if (user) {
                     // ログイン成功 - ユーザー情報をLocalStorageに保存
                     localStorage.setItem('currentUser', JSON.stringify(user))
+                    
+                    // NavBarに認証状態の変更を通知（カスタムイベント）
+                    window.dispatchEvent(new Event('auth-changed'))
+                    
                     showMessage('Login successful!', 'success')
                     
                     // リダイレクト
                     const redirectTo = route.query.redirect || '/dashboard'
                     setTimeout(() => {
-                        window.location.href = redirectTo  // router.pushの代わり
-                        // router.push(redirectTo)
+                        router.push(redirectTo)  // window.location.hrefの代わりにrouter.pushを使用
                     }, 1000)
                 } else {
                     showMessage('Invalid email or password', 'error')

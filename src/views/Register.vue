@@ -2,7 +2,7 @@
     <div class="register-page bg-light min-vh-100 d-flex align-items-center py-5">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-6 col-md-8">
+                <div class="col-xl-4 col-lg-5 col-md-7 col-sm-9">
                     <div class="card shadow-lg border-0">
                         <div class="card-body p-5">
                             <div class="text-center mb-4">
