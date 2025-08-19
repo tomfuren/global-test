@@ -92,7 +92,7 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue'
+    import { ref, computed } from 'vue'
     import { useRouter, useRoute } from 'vue-router'
 
     const router = useRouter()
@@ -110,17 +110,36 @@
     })
 
     const isLoading = ref(false)
+    const message = ref('')
+    const messageType = ref('')
 
     const validateEmail = (blur) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    
-    if (!formData.value.email.trim()) {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        
+        if (!formData.value.email.trim()) {
             if (blur) errors.value.email = "Email address is required"
         } else if (!emailPattern.test(formData.value.email.trim())) {
             if (blur) errors.value.email = "Please enter a valid email address"
         } else {
             errors.value.email = null
         }
+    }
+
+    // メッセージ表示用のcomputed
+    const messageClass = computed(() => {
+        return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
+    })
+
+    const messageIcon = computed(() => {
+        return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
+    })
+
+    const showMessage = (msg, type = 'success') => {
+        message.value = msg
+        messageType.value = type
+        setTimeout(() => {
+            message.value = ''
+        }, 3000)
     }
 
     const validatePassword = (blur) => {
@@ -142,24 +161,31 @@
         if (!errors.value.email && !errors.value.password) {
             isLoading.value = true
             
+            // LocalStorageへの対応
             try {
-            // TODO: 後でFirebase Authentication実装
-            console.log('Login attempt:', formData.value)
-            
-            // 仮の処理
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            
-            // 一時的にlocalStorageでログイン状態を管理
-            localStorage.setItem('isAuthenticated', 'true')
-            
-            // リダイレクト
-            const redirectTo = route.query.redirect || '/dashboard'
-            router.push(redirectTo)
-            
+                // LocalStorageから登録済みユーザーを取得
+                const users = JSON.parse(localStorage.getItem('users')) || []
+                const user = users.find(u => u.email === formData.value.email)
+                
+                if (user) {
+                    // ログイン成功 - ユーザー情報をLocalStorageに保存
+                    localStorage.setItem('currentUser', JSON.stringify(user))
+                    showMessage('Login successful!', 'success')
+                    
+                    // リダイレクト
+                    const redirectTo = route.query.redirect || '/dashboard'
+                    setTimeout(() => {
+                        router.push(redirectTo)
+                    }, 1000)
+                } else {
+                    showMessage('Invalid email or password', 'error')
+                }
+                
             } catch (error) {
-            console.error('Login error:', error)
+                console.error('Login error:', error)
+                showMessage('Login failed. Please try again.', 'error')
             } finally {
-            isLoading.value = false
+                isLoading.value = false
             }
         }
     }
