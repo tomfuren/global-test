@@ -95,7 +95,37 @@
 
 <style scoped>
     .dashboard {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    min-height: 100vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
     }
-</style>
+
+    /* 追加推奨CSSクラス */
+    @media (max-width: 575.98px) {
+        .container-fluid {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        
+        .card-body {
+            padding: 1rem 0.75rem;
+        }
+        
+        .btn {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+
+    @media (min-width: 576px) and (max-width: 767.98px) {
+        .display-6 {
+            font-size: 1.75rem;
+        }
+    }
+
+    @media (min-width: 1400px) {
+        .container-fluid {
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+    }
+    </style>
