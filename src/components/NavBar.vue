@@ -1,7 +1,7 @@
 <template>
   <!-- トップナビゲーションバー -->
   <nav 
-    class="top-navbar bg-white shadow-sm"
+    class="top-navbar bg-white"
     :class="{ 'navbar-hidden': !isNavbarVisible }"
   >
     <div class="container-fluid">
@@ -283,12 +283,11 @@ const hasNotifications = ref(true)
 const currentUser = ref(null)
 const sidebarExpanded = ref(true)
 const searchQuery = ref('')
-const isSearchMode = ref(false) // 検索モード状態を追加
+const isSearchMode = ref(false)
 
 // 検索モード制御関数
 const enterSearchMode = () => {
   isSearchMode.value = true
-  // 次のティックで検索入力にフォーカス
   nextTick(() => {
     const searchInput = document.querySelector('.search-mode-input')
     if (searchInput) {
@@ -300,7 +299,7 @@ const enterSearchMode = () => {
 const exitSearchMode = () => {
   isSearchMode.value = false
   searchQuery.value = ''
-} // スクロール感度調整
+}
 
 // Functions
 const loadCurrentUser = () => {
@@ -323,16 +322,12 @@ const toggleSidebar = () => {
   sidebarExpanded.value = !sidebarExpanded.value
   localStorage.setItem('sidebarExpanded', sidebarExpanded.value.toString())
   
-  // スクロール制御
   if (sidebarExpanded.value) {
-    // サイドバー開く時：スクロール無効化
     document.body.style.overflow = 'hidden'
   } else {
-    // サイドバー閉じる時：スクロール有効化
     document.body.style.overflow = ''
   }
   
-  // App.vueに状態変更を通知
   window.dispatchEvent(new CustomEvent('sidebar-state-changed', {
     detail: { isExpanded: sidebarExpanded.value }
   }))
@@ -354,13 +349,11 @@ const handleLogout = () => {
 onMounted(() => {
   loadCurrentUser()
   
-  // サイドバーの状態を復元
   const savedSidebarState = localStorage.getItem('sidebarExpanded')
   if (savedSidebarState !== null) {
     sidebarExpanded.value = savedSidebarState === 'true'
   }
   
-  // サイドバーを閉じるイベントを監視
   window.addEventListener('close-sidebar', () => {
     sidebarExpanded.value = false
     localStorage.setItem('sidebarExpanded', 'false')
@@ -395,97 +388,71 @@ const userAvatar = computed(() => {
 </script>
 
 <style scoped>
-/* トップナビゲーション - YouTube風 */
+/* トップナビゲーション - em/%単位使用版 */
 .top-navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  height: 3.5em; /* 56px → 3.5em */
   z-index: 1030;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .top-navbar .container-fluid {
-  height: 56px;
-  padding: 0 16px;
+  height: 100%;
+  padding: 0 1em; /* 固定パディング - 希望通り左右2em */
   display: flex;
   align-items: center;
-  /* justify-contentは使わず、各セクションで明示的に制御 */
+  justify-content: space-between;
+  max-width: 100vw;
 }
 
-/* 小さな画面でのパディング調整 */
-@media (max-width: 455px) {
-  .top-navbar .container-fluid {
-    padding: 0 0; /* 左右のパディングを完全に削除 */
-  }
-  
-  .navbar-left,
-  .navbar-center,
-  .navbar-right {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-  
-  .navbar-brand {
-    font-size: 1.2rem;
-  }
-  
-  .btn-ghost {
-    padding: 6px 8px;
-  }
-}
+/* === レイアウト配置システム === */
 
-/* より小さな画面での調整 */
-@media (max-width: 576px) {
-  .top-navbar .container-fluid {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100vw;
-    max-width: 100vw;
-  }
-  
-  .navbar-left {
-    padding-left: 4px;
-  }
-  
-  .navbar-right {
-    padding-right: 4px;
-  }
-}
-
-/* 左側セクション - 固定幅 */
+/* 左側セクション - ロゴエリア */
 .navbar-left {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  min-width: 200px;
+  width: 20%; /* 画面幅の20%を確保 */
+  min-width: 12em; /* 最小幅を確保 */
+  max-width: 18em; /* 最大幅を制限 */
+  margin-right: 1em;
 }
 
-/* 中央セクション - 伸縮可能 */
+/* 中央セクション - 検索バーエリア */
 .navbar-center {
   display: flex;
   justify-content: center;
-  flex: 1 1 auto;
-  max-width: 600px;
-  margin: 0 20px;
+  align-items: center;
+  flex: 1 1 auto; /* 残りスペースを使用 */
+  width: 60%; /* 画面幅の60%を占有 */
+  max-width: 40em; /* 最大幅制限 */
+  padding: 0 1em; /* 左右マージン */
 }
 
-/* 右側セクション - 固定幅 */
+/* 右側セクション - ユーザーメニューエリア */
 .navbar-right {
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
-  min-width: 200px;
   justify-content: flex-end;
+  flex: 0 0 auto;
+  width: 20%; /* 画面幅の20%を確保 */
+  min-width: 8em; /* 最小幅を確保 */
+  max-width: 12em; /* 最大幅を制限 */
+  margin-left: 1em;
 }
 
+/* === ボタンスタイル === */
 .btn-ghost {
   background: none;
   border: none;
   color: #666;
-  padding: 8px 12px;
+  padding: 0.5em 0.75em; /* em単位に変更 */
   border-radius: 50%;
   transition: background-color 0.2s;
+  font-size: 1rem;
 }
 
 .btn-ghost:hover {
@@ -493,65 +460,86 @@ const userAvatar = computed(() => {
   color: #333;
 }
 
-/* 検索バー */
+/* === 検索バー === */
 .search-container {
-  max-width: 600px;
-  flex: 1;
-  margin: 0 20px;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.search-container .input-group {
+  width: 100%;
+  max-width: 35em; /* 最大幅を制限 */
 }
 
 .search-input {
   border-right: none;
-  border-radius: 20px 0 0 20px;
-  padding-left: 16px;
+  border-radius: 1.25em 0 0 1.25em; /* 20px → 1.25em */
+  padding-left: 1em;
+  font-size: 0.95rem;
+  min-height: 2.5em;
 }
 
 .search-btn {
   border-left: none;
-  border-radius: 0 20px 20px 0;
-  width: 60px;
+  border-radius: 0 1.25em 1.25em 0;
+  width: 3.75em; /* 60px → 3.75em */
+  min-width: 3.75em;
 }
 
-/* 通知バッジ */
+/* === 通知バッジ === */
 .notification-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
+  top: 0.5em;
+  right: 0.5em;
+  width: 0.5em;
+  height: 0.5em;
   background-color: #ff4444;
   border-radius: 50%;
 }
 
-/* サイドバー */
+/* === サイドバー === */
 .sidebar {
   position: fixed;
-  top: 56px; /* NavBarの下から開始 */
+  top: 3.5em; /* NavBarの高さに合わせる */
   left: 0;
-  width: 240px;
-  height: calc(100vh - 56px); /* NavBar分を除いた高さ */
+  width: 4.5em; /* 縮小時の幅 */
+  height: calc(100vh - 3.5em);
   background: white;
   border-right: 1px solid #e5e5e5;
   overflow-y: auto;
-  z-index: 1020; /* NavBarより低く設定 */
-  transform: translateX(-100%); /* 初期状態は隠す */
-  transition: transform 0.3s ease;
+  z-index: 1020;
+  transition: width 0.2s ease;
 }
 
-/* サイドバー展開時 */
 .sidebar.sidebar-expanded {
-  transform: translateX(0); /* 表示 */
+  width: 15em; /* 展開時の幅 */
+}
+
+/* 縮小状態でのテキスト非表示 */
+.sidebar:not(.sidebar-expanded) .nav-text {
+  display: none;
+}
+
+.sidebar:not(.sidebar-expanded) .nav-link {
+  padding: 0.625em;
+  justify-content: center;
+}
+
+.sidebar:not(.sidebar-expanded) .nav-link i {
+  margin-right: 0;
 }
 
 .sidebar-content {
-  padding: 12px 0; /* 上部パディングを元に戻す */
+  padding: 0.75em 0;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .nav-section {
-  margin-bottom: 8px;
+  margin-bottom: 0.5em;
 }
 
 .sidebar-footer {
@@ -561,19 +549,20 @@ const userAvatar = computed(() => {
 .nav-divider {
   height: 1px;
   background-color: #e5e5e5;
-  margin: 12px 0;
+  margin: 0.75em 0;
 }
 
 .sidebar .nav-link {
   display: flex;
   align-items: center;
-  padding: 10px 24px;
+  padding: 0.625em 1.5em;
   color: #0f0f0f;
   text-decoration: none;
   border-radius: 0;
   transition: background-color 0.2s;
-  min-height: 40px;
+  min-height: 2.5em;
   white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .sidebar .nav-link:hover {
@@ -587,14 +576,14 @@ const userAvatar = computed(() => {
 }
 
 .sidebar .nav-link i {
-  width: 24px;
+  width: 1.5em;
   text-align: center;
-  margin-right: 24px;
-  font-size: 16px;
+  margin-right: 1.5em;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
-/* ボトムナビゲーション */
+/* === ボトムナビゲーション === */
 .bottom-navbar {
   position: fixed;
   bottom: 0;
@@ -608,7 +597,7 @@ const userAvatar = computed(() => {
 
 .bottom-nav-container {
   display: flex;
-  height: 60px;
+  height: 3.75em; /* 60px → 3.75em */
 }
 
 .bottom-nav-item {
@@ -619,7 +608,7 @@ const userAvatar = computed(() => {
   justify-content: center;
   color: #666;
   text-decoration: none;
-  font-size: 10px;
+  font-size: 0.625rem;
   transition: color 0.2s;
 }
 
@@ -633,165 +622,202 @@ const userAvatar = computed(() => {
 }
 
 .bottom-nav-item i {
-  font-size: 20px;
-  margin-bottom: 4px;
+  font-size: 1.25rem;
+  margin-bottom: 0.25em;
 }
 
-/* ドロップダウンメニュー */
+/* === ドロップダウンメニュー === */
 .dropdown-menu {
   border: none;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  min-width: 200px;
+  box-shadow: 0 0.25em 0.375em rgba(0,0,0,0.1);
+  border-radius: 0.5em;
+  min-width: 12.5em;
 }
 
 .dropdown-item {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 0.5em 1em;
+  font-size: 0.875rem;
 }
 
 .dropdown-header {
-  padding: 8px 16px;
-  font-size: 12px;
+  padding: 0.5em 1em;
+  font-size: 0.75rem;
 }
 
-/* レスポンシブ調整 */
-@media (max-width: 991.98px) {
-  body {
-    padding-bottom: 60px; /* ボトムナビの高さ分 */
-  }
-}
+/* === レスポンシブ対応 === */
 
-@media (min-width: 992px) {
-  .main-content {
-    margin-left: 240px;
-    transition: margin-left 0.2s ease;
+/* タブレット - 中間サイズ */
+@media (max-width: 991.98px) and (min-width: 768px) {
+  .top-navbar .container-fluid {
+    padding: 0 1.5em;
   }
   
-  .main-content.sidebar-collapsed {
-    margin-left: 72px;
+  .navbar-left {
+    width: 25%;
+    min-width: 10em;
+  }
+  
+  .navbar-center {
+    width: 50%;
+  }
+  
+  .navbar-right {
+    width: 25%;
+    min-width: 6em;
   }
 }
 
-@media (max-width: 767.98px) {
+/* モバイル - 大きめ */
+@media (max-width: 767.98px) and (min-width: 576px) {
+  .top-navbar .container-fluid {
+    padding: 0 1em;
+  }
+  
+  .navbar-left {
+    width: 30%;
+    min-width: 8em;
+  }
+  
+  .navbar-center {
+    width: 40%;
+  }
+  
+  .navbar-right {
+    width: 30%;
+    min-width: 5em;
+  }
+  
   .search-container {
     display: none !important;
   }
   
   .bottom-nav-item {
-    font-size: 9px;
+    font-size: 0.6rem;
   }
   
   .bottom-nav-item i {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 }
 
-/* 小さな画面での追加調整 */
-@media (max-width: 576px) {
+/* モバイル - 小さめ */
+@media (max-width: 575.98px) {
   .top-navbar .container-fluid {
-    padding: 0 4px; /* さらに小さく */
+    padding: 0 0.5em;
   }
   
   .navbar-left {
-    min-width: 60px;
-    max-width: 80px;
-  }
-  
-  .navbar-right {
-    min-width: 60px;
-    max-width: 80px;
+    width: 35%;
+    min-width: 7em;
+    margin-right: 0.5em;
   }
   
   .navbar-center {
-    margin: 0 4px;
-  }
-  
-  /* 検索バーをモバイルでは完全に隠す */
-  .search-container {
-    display: none !important;
-  }
-}
-
-/* 極小画面での調整 */
-@media (max-width: 400px) {
-  .navbar-left {
-    min-width: 50px;
-    max-width: 70px;
+    width: 30%;
+    padding: 0 0.25em;
   }
   
   .navbar-right {
-    min-width: 50px;
-    max-width: 70px;
+    width: 35%;
+    min-width: 4em;
+    margin-left: 0.5em;
   }
   
-  /* ロゴテキストは保持（削除しない） */
+  .btn-ghost {
+    padding: 0.375em 0.5em;
+  }
+  
   .brand-text {
-    font-size: 0.9rem; /* 小さくするが表示は維持 */
+    font-size: 0.9rem;
   }
   
   .btn-sm {
-    padding: 2px 6px; /* ボタンサイズを縮小 */
-    font-size: 0.75rem;
-    white-space: nowrap; /* 改行を防ぐ */
+    padding: 0.25em 0.5em;
+    font-size: 1 rem;
+    white-space: nowrap;
   }
 }
 
-/* 検索モードのスタイル */
+/* 極小画面 */
+@media (max-width: 400px) {
+  .top-navbar .container-fluid {
+    padding: 0 0.25em;
+  }
+  
+  .navbar-left {
+    width: 40%;
+    min-width: 6em;
+  }
+  
+  .navbar-right {
+    width: 40%;
+    min-width: 3.5em;
+  }
+  
+  .brand-text {
+    font-size: 0.8rem;
+  }
+  
+  .btn-sm {
+    padding: 0.2em 0.4em;
+    font-size: 0.7rem;
+  }
+  
+  .btn-ghost {
+    padding: 0.3em 0.4em;
+  }
+}
+
+/* === 検索モード === */
 .search-mode-container {
   width: 100%;
 }
 
 .search-mode-input {
   border: 1px solid #dee2e6;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 14px;
+  border-radius: 1.25em;
+  padding: 0.5em 1em;
+  font-size: 0.875rem;
 }
 
 .search-mode-input:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 0.125rem rgba(0, 123, 255, 0.25);
 }
 
 .btn-outline-secondary {
-    --bs-btn-border-color: #dee2e6;
-    border-color: #dee2e6;
+  --bs-btn-border-color: #dee2e6;
+  border-color: #dee2e6;
 }
 
-/* ボタンサイズの調整 */
+/* === ボタンサイズ調整 === */
 .btn-sm {
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  border-radius: 4px;
+  padding: 0.25em 0.7em;
+  font-size: 1.2rem;
+  border-radius: 0.25em;
 }
 
-/* モバイルでのLogin/Sign upボタンの調整 */
+/* 認証ボタンの間隔調整 */
+.navbar-right .btn-sm + .btn-sm {
+  margin-left: 0.5em;
+}
+
 @media (max-width: 576px) {
-  .navbar-right .btn-sm {
-    padding: 3px 6px;
-    font-size: 0.75rem;
-    margin: 0 1px; /* ボタン間の余白を縮小 */
-    white-space: nowrap; /* 改行を防ぐ */
-  }
-  
-  .navbar-right {
-    gap: 2px; /* フレックスアイテム間の間隔 */
+  .navbar-right .btn-sm + .btn-sm {
+    margin-left: 0.25em;
   }
 }
 
-/* 中間サイズ（400px-576px）での追加調整 */
-@media (min-width: 401px) and (max-width: 576px) {
-  .navbar-right .btn-sm {
-    padding: 2px 4px;
-    font-size: 0.7rem;
-    white-space: nowrap;
+/* === デスクトップでのコンテンツ調整 === */
+@media (min-width: 992px) {
+  .main-content {
+    margin-left: 4.5em; /* サイドバー縮小時の幅 */
+    transition: margin-left 0.2s ease;
   }
   
-  .navbar-right {
-    min-width: 70px;
-    max-width: 100px;
+  .main-content.sidebar-expanded {
+    margin-left: 15em; /* サイドバー展開時の幅 */
   }
 }
 </style>
