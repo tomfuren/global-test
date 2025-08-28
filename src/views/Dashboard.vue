@@ -7,6 +7,7 @@
           <p class="lead">Welcome to Global Plate, {{ currentUser?.firstName }}!</p>
           
           <!-- ユーザー情報表示 -->
+          <!-- Display user information -->
           <Card class="mb-4" v-if="currentUser">
             <template #title>Your Profile Information</template>
             <template #content>
@@ -74,6 +75,7 @@
     const allUsers = ref([])
 
     // LocalStorageからデータを読み込み
+    // Read data from local storage
     onMounted(() => {
     currentUser.value = JSON.parse(localStorage.getItem('currentUser'))
     allUsers.value = JSON.parse(localStorage.getItem('users')) || []
@@ -100,6 +102,7 @@
     }
 
     /* 追加推奨CSSクラス */
+    /* Additional recommended CSS classes */
     @media (max-width: 575.98px) {
         .container-fluid {
             padding-left: 10px;

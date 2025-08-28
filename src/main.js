@@ -25,12 +25,16 @@ import Tag from 'primevue/tag'
 
 // 現在、LocalStorageを使用しているため、使っていない
 // Firebase設定のインポート（既存のfirebase.jsを使用）
+// Not used because we're currently using LocalStorage
+// Import Firebase settings (use existing firebase.js)
 // import './firebase/config'
 
 // Vueアプリの作成
+// Create a Vue app
 const app = createApp(App)
 
 // PrimeVue設定
+// PrimeVue settings
 app.use(PrimeVue, {
     theme: {
         preset: Aura,
@@ -43,6 +47,7 @@ app.use(PrimeVue, {
 })
 
 // PrimeVue components登録
+// Register PrimeVue components
 app.component('Card', Card)
 app.component('DataTable', DataTable)
 app.component('Column', Column)
@@ -55,23 +60,29 @@ app.component('ProgressBar', ProgressBar)
 app.component('Tag', Tag)
 
 // ルーターの設定
+// Router configuration
 app.use(router)
 
 // グローバルプロパティの設定
+// Set global properties
 app.config.globalProperties.$appName = 'Global Plate'
 app.config.globalProperties.$version = '1.0.0'
 
 // エラーハンドリング
+// Error handling
 app.config.errorHandler = (err, instance, info) => {
   console.error('Vue Error:', err)
   console.error('Error Info:', info)
   // TODO: エラーレポーティングサービスに送信
+  // TODO: Send to error reporting service
 }
 
 // 開発環境での設定
+//Settings in development environment
 if (import.meta.env.DEV) {
   app.config.performance = true
 }
 
 // アプリをマウント
+// Mount the app
 app.mount('#app')

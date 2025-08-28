@@ -3,6 +3,7 @@
     <div class="container py-5">
       <div class="row">
         <!-- ブランド情報 -->
+        <!-- Brand information -->
         <div class="col-lg-3 col-md-6 mb-4">
           <div class="footer-brand">
             <h5 class="fw-bold text-dark mb-3">GLOBAL PLATE</h5>
@@ -14,7 +15,7 @@
           </div>
         </div>
 
-        <!-- About セクション -->
+        <!-- About -->
         <div class="col-lg-3 col-md-6 mb-4">
           <div class="footer-section">
             <h6 class="fw-bold text-dark mb-3">About</h6>
@@ -26,7 +27,7 @@
           </div>
         </div>
 
-        <!-- Links セクション -->
+        <!-- Links -->
         <div class="col-lg-2 col-md-6 mb-4">
           <div class="footer-section">
             <h6 class="fw-bold text-dark mb-3">Links</h6>
@@ -44,7 +45,7 @@
           </div>
         </div>
 
-        <!-- Sections セクション -->
+        <!-- Sections -->
         <div class="col-lg-2 col-md-6 mb-4">
           <div class="footer-section">
             <h6 class="fw-bold text-dark mb-3">Sections</h6>
@@ -74,6 +75,7 @@
         </div>
 
         <!-- Legal セクション -->
+        <!-- Legal section -->
         <div class="col-lg-2 col-md-6 mb-4">
           <div class="footer-section">
             <h6 class="fw-bold text-dark mb-3">Legal</h6>
@@ -98,6 +100,7 @@
 
 <script setup>
 // フッターは現状、静的コンテンツなので、何もなし
+// The footer is currently static content, so there is nothing
 </script>
 
 <style scoped>
@@ -142,8 +145,8 @@ footer {
   border-radius: 50%;
   transition: all 0.3s ease;
   color: #404040 !important;
-  text-decoration: none !important; /* underlineを強制的に削除 */
-  border: none !important; /* ボーダーを強制的に削除 */
+  text-decoration: none !important;
+  border: none !important;
 }
 
 .social-link:hover {
@@ -157,6 +160,7 @@ footer {
 }
 
 /* レスポンシブ対応 */
+/* Responsive */
 @media (max-width: 767.98px) {
   .container {
     padding-left: 1rem;
@@ -202,6 +206,7 @@ footer {
 }
 
 /* アクセシビリティ対応 */
+/* Accessibility enabled */
 @media (prefers-reduced-motion: reduce) {
   .footer-link {
     transition: none;

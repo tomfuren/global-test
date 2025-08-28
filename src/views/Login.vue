@@ -11,6 +11,7 @@
                             </div>
 
                             <!-- エラー・成功メッセージ -->
+                            <!-- Error/Success Message -->
                             <div v-if="message" :class="messageClass" class="alert" role="alert">
                                 <i :class="messageIcon" class="me-2"></i>
                                 {{ message }}
@@ -132,6 +133,7 @@
     }
 
     // メッセージ表示用のcomputed
+    // Computed for displaying messages
     const messageClass = computed(() => {
         return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
     })
@@ -160,28 +162,34 @@
 
     const handleLogin = async () => {
         // すべてのフィールドを検証
+        // Validate all fields
         validateEmail(true)
         validatePassword(true)
         
         // エラーがない場合のみ送信
+        // Send only if there are no errors
         if (!errors.value.email && !errors.value.password) {
             isLoading.value = true
             
             try {
                 // LocalStorageから登録済みユーザーを取得
+                //Get registered users from localStorage
                 const users = JSON.parse(localStorage.getItem('users')) || []
                 const user = users.find(u => u.email === formData.value.email)
                 
                 if (user) {
                     // ログイン成功 - ユーザー情報をLocalStorageに保存
+                    // Login successful - save user information to LocalStorage
                     localStorage.setItem('currentUser', JSON.stringify(user))
                     
                     // NavBarに認証状態の変更を通知（カスタムイベント）
+                    // Notify the NavBar of the authentication state change (custom event)
                     window.dispatchEvent(new Event('auth-changed'))
                     
                     showMessage('Login successful!', 'success')
                     
                     // リダイレクト
+                    // Redirect
                     const redirectTo = route.query.redirect || '/dashboard'
                     setTimeout(() => {
                         router.push(redirectTo)  // window.location.hrefの代わりにrouter.pushを使用

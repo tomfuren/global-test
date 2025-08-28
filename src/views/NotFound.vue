@@ -5,11 +5,13 @@
         <div class="col-lg-6">
           <div class="not-found-content">
             <!-- 404アイコン -->
+            <!-- 404 icon -->
             <div class="error-code mb-4">
               <h1 class="display-1 fw-bold text-primary">404</h1>
             </div>
             
             <!-- エラーメッセージ -->
+            <!-- Error message -->
             <div class="error-message mb-4">
               <h2 class="h3 mb-3">Page not found</h2>
               <p class="text-muted mb-4">
@@ -19,6 +21,7 @@
             </div>
             
             <!-- アクションボタン -->
+            <!-- action button -->
             <div class="error-actions">
               <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
                 <router-link to="/" class="btn btn-primary btn-lg">
@@ -33,6 +36,7 @@
             </div>
             
             <!-- 人気ページへのリンク -->
+            <!-- Link to popular page -->
             <div class="popular-links mt-5">
               <h5 class="mb-3 text-muted">Popular Pages</h5>
               <div class="row g-3">
@@ -78,6 +82,7 @@ export default {
   methods: {
     goBack() {
       // ブラウザの履歴があれば戻る、なければホームへ
+      // Go back if there is browser history, go home if not
       if (window.history.length > 1) {
         this.$router.go(-1)
       } else {

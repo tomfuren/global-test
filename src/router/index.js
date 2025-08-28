@@ -2,6 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Lazy loading でコンポーネントをインポート
+// Import the component with lazy loading
 const Home = () => import('../views/Home.vue')
 const Login = () => import('../views/Login.vue')
 const Register = () => import('../views/Register.vue')
@@ -31,6 +32,7 @@ const routes = [
         meta: {
         title: 'Login - Global Plate',
         requiresAuth: false,
+        // No access for authenticated users
         guest: true // 認証済みユーザーはアクセス不可
         }
     },
@@ -41,6 +43,7 @@ const routes = [
         meta: {
         title: 'Register - Global Plate',
         requiresAuth: false,
+        // No access for authenticated users
         guest: true // 認証済みユーザーはアクセス不可
         }
     },
@@ -128,6 +131,7 @@ const router = createRouter({
 })
 
 // LocalStorageの認証チェック
+// LocalStorage authentication check
 function isAuthenticated() {
   try {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'))
@@ -145,13 +149,16 @@ function isAuthenticated() {
 // }
 
 // ナビゲーションガード
+// Navigation guard
 router.beforeEach((to, from, next) => {
   // ページタイトル設定
+  // Set page title
   if (to.meta.title) {
     document.title = to.meta.title
   }
 
   // 認証が必要なページの処理
+  // Processing pages that require authentication
   if (to.meta.requiresAuth && !isAuthenticated()) {
     next({
       name: 'Login',
@@ -161,6 +168,7 @@ router.beforeEach((to, from, next) => {
   }
 
   // 認証済みユーザーがゲストページにアクセスした場合
+  // If an authenticated user visits the guest page
   if (to.meta.guest && isAuthenticated()) {
     next({ name: 'Dashboard' })
     return

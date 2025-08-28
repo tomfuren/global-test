@@ -5,6 +5,7 @@ import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
 
 // Firebase設定 - 環境変数から読み込み（セキュリティ向上）
+// Firebase settings - read from environment variables (improved security)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAAAnZw9FhMc4iVfGro1buLVCVvC8Cyd2Q",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "global-plate-dev.firebaseapp.com",
@@ -15,18 +16,22 @@ const firebaseConfig = {
 };
 
 // Firebaseアプリの初期化
+// Initialize the Firebase app
 const app = initializeApp(firebaseConfig);
 
 // Firebase サービスのエクスポート
+// Export Firebase services
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 
 // デフォルトエクスポート
+// Default export
 export default app;
 
 // 開発環境での確認
+// Check in development environment
 if (import.meta.env.DEV) {
   console.log('🔥 Firebase initialized successfully');
   console.log('📝 Project ID:', firebaseConfig.projectId);

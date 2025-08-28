@@ -11,6 +11,7 @@
                             </div>
 
                             <!-- エラー・成功メッセージ -->
+                            <!-- Error/Success Message -->
                             <div v-if="message" :class="messageClass" class="alert" role="alert">
                                 <i :class="messageIcon" class="me-2"></i>
                                 {{ message }}
@@ -235,6 +236,7 @@
     const messageType = ref('')
 
     // メッセージ表示用のcomputed
+    // Computed for displaying messages
     const messageClass = computed(() => {
     return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
     })
@@ -244,6 +246,7 @@
     })
 
     // LocalStorageでのメッセージ用
+    // For messages in LocalStorage
     const showMessage = (msg, type = 'success') => {
     message.value = msg
     messageType.value = type
@@ -339,8 +342,10 @@
     }
 
     // Local Storageを使ったユーザー検証
+    // User verification using Local Storage
     const handleRegister = async () => {
         // すべてのフィールドを検証
+        // Validate all fields
         validateFirstName(true)
         validateLastName(true)
         validateEmail(true)
@@ -351,6 +356,7 @@
         validateAgree(true)
         
         // エラーがない場合のみ送信
+        // Send only if there are no errors
         if (!errors.value.firstName && !errors.value.lastName && !errors.value.email && 
             !errors.value.country && !errors.value.university && !errors.value.password && 
             !errors.value.confirmPassword && !errors.value.agree) {
@@ -360,6 +366,8 @@
             try {
                 // TODO: 後でFirebase Authentication実装
                 // LocalStorageから既存ユーザーを取得
+                // TODO: Implement Firebase Authentication later
+                // Get an existing user from LocalStorage
                 const users = JSON.parse(localStorage.getItem('users')) || []
                 
                 // // 仮の処理
@@ -369,6 +377,7 @@
                 // router.push('/login')
 
                 // メール重複チェック
+                // Check for email duplication
                 const emailExists = users.some(user => user.email === formData.value.email)
                 if (emailExists) {
                     showMessage('Email already exists', 'error')
@@ -376,6 +385,7 @@
                 }
                 
                 // 新しいユーザーを作成
+                // Create a new user
                 const newUser = {
                     id: Date.now().toString(),
                     firstName: formData.value.firstName,
@@ -387,12 +397,14 @@
                 }
                 
                 // ユーザーをLocalStorageに追加
+                // Add the user to LocalStorage
                 users.push(newUser)
                 localStorage.setItem('users', JSON.stringify(users))
                 
                 showMessage('Registration successful!', 'success')
                 
                 // 登録成功後はログインページへ
+                // After successful registration, go to the login page
                 setTimeout(() => {
                     router.push('/login')
                 }, 1500)
