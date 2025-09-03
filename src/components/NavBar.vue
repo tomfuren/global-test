@@ -294,9 +294,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth"
 
 const router = useRouter()
 const route = useRoute()
+const auth = getAuth()
 
 const isNavbarVisible = ref(true)
 
@@ -324,89 +326,78 @@ const exitSearchMode = () => {
   searchQuery.value = ''
 }
 
-// Functions
-const loadCurrentUser = () => {
-  try {
-    const userData = localStorage.getItem('currentUser')
-    currentUser.value = userData ? JSON.parse(userData) : null
-    console.log('Current user loaded:', currentUser.value)
-  } catch (error) {
-    console.error('Error loading current user:', error)
-    currentUser.value = null
+// ユーザーがログインしているかどうかを真偽値で返す
+const isAuthenticated = computed(() => !!currentUser.value)
+
+// ユーザー名を返す（ログインしていなければ "Guest"）
+// FirebaseのdisplayNameがあればそれを優先し、なければemailを使用
+const userName = computed(() => {
+  if (!currentUser.value) return 'Guest'
+  return currentUser.value.displayName || currentUser.value.email
+})
+
+
+// ユーザーのアバター画像URLを返す
+// FirebaseのphotoURLがあればそれを使用し、なければui-avatarsで自動生成
+const userAvatar = computed(() => {
+  if (currentUser.value && currentUser.value.photoURL) {
+    return currentUser.value.photoURL
   }
-}
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.value)}&size=32&background=007bff&color=ffffff`
+})
 
-const handleAuthChange = () => {
-  console.log('Auth change detected')
-  loadCurrentUser()
-}
-
+// サイドバーの開閉状態を切り替える
+// 状態をlocalStorageに保存し、カスタムイベントを発火
 const toggleSidebar = () => {
   sidebarExpanded.value = !sidebarExpanded.value
   localStorage.setItem('sidebarExpanded', sidebarExpanded.value.toString())
   
-  if (sidebarExpanded.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
+  document.body.style.overflow = sidebarExpanded.value ? 'hidden' : ''
   
   window.dispatchEvent(new CustomEvent('sidebar-state-changed', {
     detail: { isExpanded: sidebarExpanded.value }
   }))
 }
 
+// Firebaseログアウト処理
+// ログアウト成功時、認証が必要なページならホームへリダイレクト
 const handleLogout = () => {
-  localStorage.removeItem('currentUser')
-  currentUser.value = null
-  window.dispatchEvent(new Event('auth-changed'))
-  
-  if (route.meta.requiresAuth) {
-    router.push('/')
-  }
-  
-  console.log('logout complate')
+  signOut(auth)
+    .then(() => {
+      console.log('Firebase Sign out successful')
+      if (route.meta.requiresAuth) {
+        router.push('/')
+      }
+    })
+    .catch((error) => {
+      console.error('Logout error:', error)
+    })
 }
 
 // Lifecycle
 onMounted(() => {
-  loadCurrentUser()
+  // Firebase認証状態監視
+  onAuthStateChanged(auth, (user) => {
+    currentUser.value = user
+  })
   
+  // サイドバー状態復元
   const savedSidebarState = localStorage.getItem('sidebarExpanded')
   if (savedSidebarState !== null) {
     sidebarExpanded.value = savedSidebarState === 'true'
   }
   
+  // イベントリスナー
   window.addEventListener('close-sidebar', () => {
     sidebarExpanded.value = false
     localStorage.setItem('sidebarExpanded', 'false')
   })
-  
-  window.addEventListener('auth-changed', handleAuthChange)
-  window.addEventListener('storage', handleAuthChange)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('auth-changed', handleAuthChange)
-  window.removeEventListener('storage', handleAuthChange)
   window.removeEventListener('close-sidebar', () => {
     sidebarExpanded.value = false
   })
-})
-
-// Computed
-const isAuthenticated = computed(() => !!currentUser.value)
-
-const userName = computed(() => {
-  if (!currentUser.value) return 'Guest'
-  return `${currentUser.value.firstName} ${currentUser.value.lastName}`.trim() || currentUser.value.email
-})
-
-const userAvatar = computed(() => {
-  if (currentUser.value) {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.value)}&size=32&background=007bff&color=ffffff`
-  }
-  return 'https://ui-avatars.com/api/?name=Guest&size=32&background=6c757d&color=ffffff'
 })
 </script>
 

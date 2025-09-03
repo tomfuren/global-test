@@ -1,5 +1,6 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
+import { getAuth, onAuthStateChanged } from "firebase/auth"
 
 // Lazy loading でコンポーネントをインポート
 // Import the component with lazy loading
@@ -21,8 +22,8 @@ const routes = [
         name: 'Home',
         component: Home,
         meta: {
-        title: 'Global Plate - A nutritional food community that connects international students with the world',
-        requiresAuth: false
+            title: 'Global Plate - A nutritional food community that connects international students with the world',
+            requiresAuth: false
         }
     },
     {
@@ -30,10 +31,10 @@ const routes = [
         name: 'Login',
         component: Login,
         meta: {
-        title: 'Login - Global Plate',
-        requiresAuth: false,
-        // No access for authenticated users
-        guest: true // 認証済みユーザーはアクセス不可
+            title: 'Login - Global Plate',
+            requiresAuth: false,
+            // No access for authenticated users
+            requiresGuest: true // 認証済みユーザーはアクセス不可
         }
     },
     {
@@ -41,10 +42,10 @@ const routes = [
         name: 'Register',
         component: Register,
         meta: {
-        title: 'Register - Global Plate',
-        requiresAuth: false,
-        // No access for authenticated users
-        guest: true // 認証済みユーザーはアクセス不可
+            title: 'Register - Global Plate',
+            requiresAuth: false,
+            // No access for authenticated users
+            requiresGuest: true // 認証済みユーザーはアクセス不可
         }
     },
     {
@@ -52,8 +53,9 @@ const routes = [
         name: 'Dashboard',
         component: Dashboard,
         meta: {
-        title: 'Dashboard- Global Plate',
-        requiresAuth: true
+            title: 'Dashboard- Global Plate',
+            // No access for authenticated users
+            requiresAuth: true // 認証済みユーザーはアクセス不可
         }
     },
     {
@@ -61,8 +63,8 @@ const routes = [
         name: 'Recipes',
         component: Recipes,
         meta: {
-        title: 'Recipes - Global Plate',
-        requiresAuth: false
+            title: 'Recipes - Global Plate',
+            requiresAuth: false
         }
     },
     {
@@ -70,8 +72,9 @@ const routes = [
         name: 'Groups',
         component: Groups,
         meta: {
-        title: 'Groups - Global Plate',
-        requiresAuth: true
+            title: 'Groups - Global Plate',
+            // No access for authenticated users
+            requiresAuth: true // 認証済みユーザーはアクセス不可
         }
     },
     {
@@ -79,8 +82,8 @@ const routes = [
         name: 'Events',
         component: Events,
         meta: {
-        title: 'Events - Global Plate',
-        requiresAuth: false
+            title: 'Events - Global Plate',
+            requiresAuth: false
         }
     },
     {
@@ -88,24 +91,25 @@ const routes = [
         name: 'Profile',
         component: Profile,
         meta: {
-        title: 'Profile - Global Plate',
-        requiresAuth: true
+            title: 'Profile - Global Plate',
+            // No access for authenticated users
+            requiresAuth: true // 認証済みユーザーはアクセス不可
         }
     },
     {
         path: '/terms',
         name: 'TermsOfService',
         component: TermsOfService,
-        meta: {
-        title: 'Terms of Service - Global Plate'
+            meta: {
+            title: 'Terms of Service - Global Plate'
         }
     },
     {
         path: '/privacy',
         name: 'PrivacyPolicy',
         component: PrivacyPolicy,
-        meta: {
-        title: 'Privacy Policy - Global Plate'
+            meta: {
+            title: 'Privacy Policy - Global Plate'
         }
     },
     {
@@ -113,7 +117,7 @@ const routes = [
         name: 'NotFound',
         component: NotFound,
         meta: {
-        title: 'NotFound - Global Plate'
+            title: 'NotFound - Global Plate'
         }
     }
 ]
@@ -130,51 +134,80 @@ const router = createRouter({
   }
 })
 
-// LocalStorageの認証チェック
-// LocalStorage authentication check
-function isAuthenticated() {
-  try {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'))
-    return !!currentUser
-  } catch {
-    return false
-  }
+
+// // LocalStorageの認証チェック。これはもう要らない。
+// // LocalStorage authentication check
+// function isAuthenticated() {
+//   try {
+//     const currentUser = JSON.parse(localStorage.getItem('currentUser'))
+//     return !!currentUser
+//   } catch {
+//     return false
+//   }
+// }
+
+// Firebase認証の現在のユーザーを取得
+const getCurrentUser = () => {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = onAuthStateChanged(
+            getAuth(),
+            (user) => {
+                unsubscribe()
+                resolve(user)
+            },
+            reject
+        )
+    })
 }
 
-// Firebase 対応のLogin認証を一旦コメントアウト
-// // 認証状態チェック（後でFirebase Authと連携）
-// function isAuthenticated() {
-//   // TODO: Firebase Auth実装後に置き換え
-//   return localStorage.getItem('isAuthenticated') === 'true'
-// }
 
 // ナビゲーションガード
 // Navigation guard
-router.beforeEach((to, from, next) => {
-  // ページタイトル設定
-  // Set page title
-  if (to.meta.title) {
-    document.title = to.meta.title
-  }
+// ナビゲーションガード（Firebase認証対応）
+router.beforeEach(async (to, from, next) => {
+    try {
+        // ページタイトル設定
+        if (to.meta.title) {
+            document.title = to.meta.title
+        }
 
-  // 認証が必要なページの処理
-  // Processing pages that require authentication
-  if (to.meta.requiresAuth && !isAuthenticated()) {
-    next({
-      name: 'Login',
-      query: { redirect: to.fullPath }
-    })
-    return
-  }
+        // Firebase認証状態を取得
+        const currentUser = await getCurrentUser()
+        const isAuthenticated = !!currentUser
 
-  // 認証済みユーザーがゲストページにアクセスした場合
-  // If an authenticated user visits the guest page
-  if (to.meta.guest && isAuthenticated()) {
-    next({ name: 'Dashboard' })
-    return
-  }
+        console.log(`Navigating to: ${to.path}`)
+        console.log(`Is authenticated: ${isAuthenticated}`)
 
-  next()
+        // 認証が必要なルートへのアクセス
+        if (to.meta.requiresAuth && !isAuthenticated) {
+            console.log('Redirecting to login: Authentication required')
+            next({
+                path: '/login',
+                query: { redirect: to.fullPath }
+            })
+            return
+        }
+
+        // ゲスト専用ルート（ログイン済みユーザーのアクセス制限）
+        if (to.meta.requiresGuest && isAuthenticated) {
+            console.log('Redirecting to dashboard: User already authenticated')
+            next('/dashboard')
+            return
+        }
+
+        // 通常のルートアクセス
+        next()
+
+    } catch (error) {
+        console.error('Route guard error:', error)
+        
+        // エラー時の処理
+        if (to.meta.requiresAuth) {
+            next('/login')
+        } else {
+            next()
+        }
+    }
 })
 
 export default router
