@@ -17,7 +17,7 @@
                                 {{ message }}
                             </div>
 
-                            <form @submit.prevent="handleLogin">
+                            <form @submit.prevent="signin">
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email address</label>
                                     <input
@@ -99,113 +99,149 @@
 </template>
 
 <script setup>
-    import { ref, computed } from 'vue'
-    import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 
-    const router = useRouter()
-    const route = useRoute()
+const router = useRouter()
+const route = useRoute()
+const auth = getAuth()
 
-    const formData = ref({
-        email: '',
-        password: '',
-        remember: false
-    })
+const formData = ref({
+    email: '',
+    password: '',
+    remember: false
+})
 
-    const errors = ref({
-        email: null,
-        password: null
-    })
+const errors = ref({
+    email: null,
+    password: null
+})
 
-    const isLoading = ref(false)
-    const message = ref('')
-    const messageType = ref('')
+const isLoading = ref(false)
+const message = ref('')
+const messageType = ref('')
 
-    const validateEmail = (blur) => {
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        
-        if (!formData.value.email.trim()) {
-            if (blur) errors.value.email = "Email address is required"
-        } else if (!emailPattern.test(formData.value.email.trim())) {
-            if (blur) errors.value.email = "Please enter a valid email address"
-        } else {
-            errors.value.email = null
-        }
+const validateEmail = (blur) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    
+    if (!formData.value.email.trim()) {
+        if (blur) errors.value.email = "Email address is required"
+    } else if (!emailPattern.test(formData.value.email.trim())) {
+        if (blur) errors.value.email = "Please enter a valid email address"
+    } else {
+        errors.value.email = null
     }
+}
 
-    // メッセージ表示用のcomputed
-    // Computed for displaying messages
-    const messageClass = computed(() => {
-        return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
-    })
+// メッセージ表示用のcomputed
+// Computed for displaying messages
+const messageClass = computed(() => {
+    return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
+})
 
-    const messageIcon = computed(() => {
-        return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
-    })
+const messageIcon = computed(() => {
+    return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
+})
 
-    const showMessage = (msg, type = 'success') => {
-        message.value = msg
-        messageType.value = type
-        setTimeout(() => {
-            message.value = ''
-        }, 3000)
+const showMessage = (msg, type = 'success') => {
+    message.value = msg
+    messageType.value = type
+    setTimeout(() => {
+        message.value = ''
+    }, 3000)
+}
+
+const validatePassword = (blur) => {
+    if (!formData.value.password) {
+        if (blur) errors.value.password = "Password is required"
+    } else if (formData.value.password.length < 6) {
+        if (blur) errors.value.password = "Password must be at least 6 characters"
+    } else {
+        errors.value.password = null
     }
+}
 
-    const validatePassword = (blur) => {
-        if (!formData.value.password) {
-            if (blur) errors.value.password = "Password is required"
-        } else if (formData.value.password.length < 6) {
-            if (blur) errors.value.password = "Password must be at least 6 characters"
-        } else {
-            errors.value.password = null
-        }
+// Firebase error code to message mapping
+const getErrorMessage = (errorCode) => {
+    switch (errorCode) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+            return 'Invalid email or password'
+        case 'auth/invalid-email':
+            return 'Please enter a valid email address'
+        case 'auth/too-many-requests':
+            return 'Too many login attempts. Please try again later'
+        case 'auth/network-request-failed':
+            return 'Network error. Please check your connection'
+        case 'auth/user-disabled':
+            return 'This account has been disabled'
+        default:
+            return 'Login failed. Please try again'
     }
+}
 
-    const handleLogin = async () => {
-        // すべてのフィールドを検証
-        // Validate all fields
-        validateEmail(true)
-        validatePassword(true)
-        
-        // エラーがない場合のみ送信
-        // Send only if there are no errors
-        if (!errors.value.email && !errors.value.password) {
-            isLoading.value = true
+// Firebase Sign In 
+const signin = () => {
+    // Validate form
+    validateEmail(true)
+    validatePassword(true)
+    
+    // if (!isFormValid.value) {
+    //     return
+    // }
+
+    isLoading.value = true
+    
+    signInWithEmailAndPassword(getAuth(), formData.value.email, formData.value.password)
+        .then((data) => {
+            console.log("Firebase Sign in Successful!")
+            console.log("Current User:", auth.currentUser)
             
-            try {
-                // LocalStorageから登録済みユーザーを取得
-                //Get registered users from localStorage
-                const users = JSON.parse(localStorage.getItem('users')) || []
-                const user = users.find(u => u.email === formData.value.email)
-                
-                if (user) {
-                    // ログイン成功 - ユーザー情報をLocalStorageに保存
-                    // Login successful - save user information to LocalStorage
-                    localStorage.setItem('currentUser', JSON.stringify(user))
-                    
-                    // NavBarに認証状態の変更を通知（カスタムイベント）
-                    // Notify the NavBar of the authentication state change (custom event)
-                    window.dispatchEvent(new Event('auth-changed'))
-                    
-                    showMessage('Login successful!', 'success')
-                    
-                    // リダイレクト
-                    // Redirect
-                    const redirectTo = route.query.redirect || '/dashboard'
-                    setTimeout(() => {
-                        router.push(redirectTo)  // window.location.hrefの代わりにrouter.pushを使用
-                    }, 1000)
-                } else {
-                    showMessage('Invalid email or password', 'error')
-                }
-                
-            } catch (error) {
-                console.error('Login error:', error)
-                showMessage('Login failed. Please try again.', 'error')
-            } finally {
-                isLoading.value = false
+            showMessage('Login successful!', 'success')
+            
+            // Remember me機能のために、Local Storageを残す
+            if (formData.value.remember) {
+                localStorage.setItem('rememberedEmail', formData.value.email)
+            } else {
+                localStorage.removeItem('rememberedEmail')
             }
-        }
+            
+            // Notify NavBar of auth change
+            window.dispatchEvent(new Event('auth-changed'))
+            
+            // Redirect
+            const redirectTo = route.query.redirect || '/dashboard'
+            setTimeout(() => {
+                router.push({
+                    path: "/",
+                    query: { message: 'Login-success' }
+                })
+            }, 1000)
+        })
+        .catch((error) => {
+            console.log('Firebase Auth Error:', error.code)
+            showMessage(getErrorMessage(error.code), 'error')
+        })
+        .finally(() => {
+            isLoading.value = false
+        })
+}
+
+// Load remembered email on mount
+onMounted(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail')
+    if (rememberedEmail) {
+        formData.value.email = rememberedEmail
+        formData.value.remember = true
     }
+    
+    if (route.query.message === 'registration-success') {
+        showMessage('Registration successful! Please sign in with your new account.', 'success')
+        // クエリパラメータをクリアして、リロード時の再表示を防ぐ
+        router.replace({ path: route.path })
+    }
+})
 </script>
 
 <style scoped>
