@@ -298,6 +298,8 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 
+const isNavbarVisible = ref(true)
+
 // State
 const hasNotifications = ref(true)
 const currentUser = ref(null)

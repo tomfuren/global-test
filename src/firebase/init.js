@@ -12,7 +12,8 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "global-plate-dev",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "global-plate-dev.firebasestorage.app",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1021496007378",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1021496007378:web:4770893cb90e9125952b0b"
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1021496007378:web:4770893cb90e9125952b0b",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-2TK999ZKPR"
 };
 
 // Firebaseアプリの初期化
@@ -33,7 +34,7 @@ export default app;
 // 開発環境での確認
 // Check in development environment
 if (import.meta.env.DEV) {
-  console.log('🔥 Firebase initialized successfully');
-  console.log('📝 Project ID:', firebaseConfig.projectId);
-  console.log('🔐 Using environment variables:', !!import.meta.env.VITE_FIREBASE_API_KEY);
+  console.log('Firebase initialized successfully');
+  console.log('Project ID:', firebaseConfig.projectId);
+  console.log('Using environment variables:', !!import.meta.env.VITE_FIREBASE_API_KEY);
 }

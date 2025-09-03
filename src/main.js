@@ -27,7 +27,7 @@ import Tag from 'primevue/tag'
 // Firebase設定のインポート（既存のfirebase.jsを使用）
 // Not used because we're currently using LocalStorage
 // Import Firebase settings (use existing firebase.js)
-// import './firebase/config'
+import './firebase/init.js'
 
 // Vueアプリの作成
 // Create a Vue app
@@ -66,7 +66,7 @@ app.use(router)
 // グローバルプロパティの設定
 // Set global properties
 app.config.globalProperties.$appName = 'Global Plate'
-app.config.globalProperties.$version = '1.0.0'
+app.config.globalProperties.$version = '1.2.0'
 
 // エラーハンドリング
 // Error handling

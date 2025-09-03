@@ -17,7 +17,7 @@
                                 {{ message }}
                             </div>
 
-                            <form @submit.prevent="handleRegister">
+                            <form @submit.prevent="register">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="firstName" class="form-label">First Name</label>
@@ -204,219 +204,227 @@
 </template>
 
 <script setup>
-    import { ref, computed } from 'vue'
-    import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"
 
-    const router = useRouter()
+const router = useRouter()
+const auth = getAuth()
 
-    const formData = ref({
-        firstName: '',
-        lastName: '',
-        email: '',
-        country: '',
-        university: '',
-        password: '',
-        confirmPassword: '',
-        agree: false
-    })
+// Form data
+const formData = ref({
+    firstName: '',
+    lastName: '',
+    email: '',
+    country: '',
+    university: '',
+    password: '',
+    confirmPassword: '',
+    agree: false
+})
 
-    const errors = ref({
-        firstName: null,
-        lastName: null,
-        email: null,
-        country: null,
-        university: null,
-        password: null,
-        confirmPassword: null,
-        agree: null
-    })
+// Validation errors
+const errors = ref({
+    firstName: null,
+    lastName: null,
+    email: null,
+    country: null,
+    university: null,
+    password: null,
+    confirmPassword: null,
+    agree: null
+})
 
-    const isLoading = ref(false)
-    const message = ref('')
-    const messageType = ref('')
+// UI state
+const isLoading = ref(false)
+const message = ref('')
+const messageType = ref('')
 
-    // メッセージ表示用のcomputed
-    // Computed for displaying messages
-    const messageClass = computed(() => {
-    return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
-    })
+// メッセージ表示用のcomputed
+// Computed for displaying messages
+const messageClass = computed(() => {
+return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
+})
 
-    const messageIcon = computed(() => {
-    return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
-    })
+const messageIcon = computed(() => {
+return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
+})
 
-    // LocalStorageでのメッセージ用
-    // For messages in LocalStorage
-    const showMessage = (msg, type = 'success') => {
-    message.value = msg
-    messageType.value = type
-    setTimeout(() => {
-        message.value = ''
-    }, 3000)
+// LocalStorageでのメッセージ用
+// For messages in LocalStorage
+const showMessage = (msg, type = 'success') => {
+message.value = msg
+messageType.value = type
+setTimeout(() => {
+    message.value = ''
+}, 3000)
+}
+
+const validateFirstName = (blur) => {
+if (!formData.value.firstName.trim()) {
+    if (blur) errors.value.firstName = "First name is required"
+} else if (formData.value.firstName.trim().length < 2) {
+    if (blur) errors.value.firstName = "First name must be at least 2 characters"
+} else {
+    errors.value.firstName = null
+}
+}
+
+const validateLastName = (blur) => {
+if (!formData.value.lastName.trim()) {
+    if (blur) errors.value.lastName = "Last name is required"
+} else if (formData.value.lastName.trim().length < 2) {
+    if (blur) errors.value.lastName = "Last name must be at least 2 characters"
+} else {
+    errors.value.lastName = null
+}
+}
+
+const validateEmail = (blur) => {
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+if (!formData.value.email.trim()) {
+    if (blur) errors.value.email = "Email address is required"
+} else if (!emailPattern.test(formData.value.email.trim())) {
+    if (blur) errors.value.email = "Please enter a valid email address"
+} else {
+    errors.value.email = null
+}
+}
+
+const validateCountry = (blur) => {
+if (!formData.value.country || formData.value.country === '') {
+    if (blur) errors.value.country = "Please select your country"
+} else {
+    errors.value.country = null
+}
+}
+
+const validateUniversity = (blur) => {
+if (!formData.value.university.trim()) {
+    if (blur) errors.value.university = "University/School is required"
+} else if (formData.value.university.trim().length < 3) {
+    if (blur) errors.value.university = "University name must be at least 3 characters"
+} else {
+    errors.value.university = null
+}
+}
+
+const validatePassword = (blur) => {
+const password = formData.value.password
+
+if (!password) {
+    if (blur) errors.value.password = "Password is required"
+} else if (password.length < 8) {
+    if (blur) errors.value.password = "Password must be at least 8 characters"
+} else if (!/(?=.*[a-z])/.test(password)) {
+    if (blur) errors.value.password = "Password must contain at least one lowercase letter"
+} else if (!/(?=.*[A-Z])/.test(password)) {
+    if (blur) errors.value.password = "Password must contain at least one uppercase letter"
+} else if (!/(?=.*\d)/.test(password)) {
+    if (blur) errors.value.password = "Password must contain at least one number"
+} else {
+    errors.value.password = null
+}
+}
+
+const validateConfirmPassword = (blur) => {
+if (!formData.value.confirmPassword) {
+    if (blur) errors.value.confirmPassword = "Please confirm your password"
+} else if (formData.value.password !== formData.value.confirmPassword) {
+    if (blur) errors.value.confirmPassword = "Passwords do not match"
+} else {
+    errors.value.confirmPassword = null
+}
+}
+
+const validateAgree = (blur) => {
+if (!formData.value.agree) {
+    if (blur) errors.value.agree = "You must agree to the Terms of Service and Privacy Policy"
+} else {
+    errors.value.agree = null
+}
+}
+
+// エラーがない場合のみ送信
+// Send only if there are no errors
+const isFormValid = computed(() => {
+    return Object.values(errors.value).every(error => error === null) &&
+        formData.value.firstName &&
+        formData.value.lastName &&
+        formData.value.email &&
+        formData.value.country &&
+        formData.value.university &&
+        formData.value.password &&
+        formData.value.confirmPassword &&
+        formData.value.agree
+})
+
+// Firebase error handling function を追加。Firebaseのエラーがあった時にここでキャッチをする
+const getErrorMessage = (errorCode) => {
+    switch (errorCode) {
+        case 'auth/email-already-in-use':
+            return 'An account with this email already exists'
+        case 'auth/weak-password':
+            return 'Password is too weak. Please choose a stronger password'
+        case 'auth/invalid-email':
+            return 'Please enter a valid email address'
+        case 'auth/operation-not-allowed':
+            return 'Account creation is currently disabled'
+        case 'auth/network-request-failed':
+            return 'Network error. Please check your connection'
+        default:
+            return 'Registration failed. Please try again'
     }
+}
 
-    const validateFirstName = (blur) => {
-    if (!formData.value.firstName.trim()) {
-        if (blur) errors.value.firstName = "First name is required"
-    } else if (formData.value.firstName.trim().length < 2) {
-        if (blur) errors.value.firstName = "First name must be at least 2 characters"
-    } else {
-        errors.value.firstName = null
-    }
-    }
-
-    const validateLastName = (blur) => {
-    if (!formData.value.lastName.trim()) {
-        if (blur) errors.value.lastName = "Last name is required"
-    } else if (formData.value.lastName.trim().length < 2) {
-        if (blur) errors.value.lastName = "Last name must be at least 2 characters"
-    } else {
-        errors.value.lastName = null
-    }
-    }
-
-    const validateEmail = (blur) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Firebase Register 
+const register = () => {
+    // Validate all fields
+    validateFirstName(true)
+    validateLastName(true)
+    validateEmail(true)
+    validateCountry(true)
+    validateUniversity(true)
+    validatePassword(true)
+    validateConfirmPassword(true)
+    validateAgree(true)
     
-    if (!formData.value.email.trim()) {
-        if (blur) errors.value.email = "Email address is required"
-    } else if (!emailPattern.test(formData.value.email.trim())) {
-        if (blur) errors.value.email = "Please enter a valid email address"
-    } else {
-        errors.value.email = null
-    }
+    if (!isFormValid.value) {
+        return
     }
 
-    const validateCountry = (blur) => {
-    if (!formData.value.country || formData.value.country === '') {
-        if (blur) errors.value.country = "Please select your country"
-    } else {
-        errors.value.country = null
-    }
-    }
+    isLoading.value = true
 
-    const validateUniversity = (blur) => {
-    if (!formData.value.university.trim()) {
-        if (blur) errors.value.university = "University/School is required"
-    } else if (formData.value.university.trim().length < 3) {
-        if (blur) errors.value.university = "University name must be at least 3 characters"
-    } else {
-        errors.value.university = null
-    }
-    }
-
-    const validatePassword = (blur) => {
-    const password = formData.value.password
-    
-    if (!password) {
-        if (blur) errors.value.password = "Password is required"
-    } else if (password.length < 8) {
-        if (blur) errors.value.password = "Password must be at least 8 characters"
-    } else if (!/(?=.*[a-z])/.test(password)) {
-        if (blur) errors.value.password = "Password must contain at least one lowercase letter"
-    } else if (!/(?=.*[A-Z])/.test(password)) {
-        if (blur) errors.value.password = "Password must contain at least one uppercase letter"
-    } else if (!/(?=.*\d)/.test(password)) {
-        if (blur) errors.value.password = "Password must contain at least one number"
-    } else {
-        errors.value.password = null
-    }
-    }
-
-    const validateConfirmPassword = (blur) => {
-    if (!formData.value.confirmPassword) {
-        if (blur) errors.value.confirmPassword = "Please confirm your password"
-    } else if (formData.value.password !== formData.value.confirmPassword) {
-        if (blur) errors.value.confirmPassword = "Passwords do not match"
-    } else {
-        errors.value.confirmPassword = null
-    }
-    }
-
-    const validateAgree = (blur) => {
-    if (!formData.value.agree) {
-        if (blur) errors.value.agree = "You must agree to the Terms of Service and Privacy Policy"
-    } else {
-        errors.value.agree = null
-    }
-    }
-
-    // Local Storageを使ったユーザー検証
-    // User verification using Local Storage
-    const handleRegister = async () => {
-        // すべてのフィールドを検証
-        // Validate all fields
-        validateFirstName(true)
-        validateLastName(true)
-        validateEmail(true)
-        validateCountry(true)
-        validateUniversity(true)
-        validatePassword(true)
-        validateConfirmPassword(true)
-        validateAgree(true)
-        
-        // エラーがない場合のみ送信
-        // Send only if there are no errors
-        if (!errors.value.firstName && !errors.value.lastName && !errors.value.email && 
-            !errors.value.country && !errors.value.university && !errors.value.password && 
-            !errors.value.confirmPassword && !errors.value.agree) {
+    createUserWithEmailAndPassword(auth, formData.value.email, formData.value.password)
+        .then((data) => {
+            console.log("Firebase Register Successful!")
+            console.log("New User:", data.user)
+            console.log("User Info:", {
+                firstName: formData.value.firstName,
+                lastName: formData.value.lastName,
+                country: formData.value.country,
+                university: formData.value.university
+            })
             
-            isLoading.value = true
+            showMessage('Registration successful!', 'success')
             
-            try {
-                // TODO: 後でFirebase Authentication実装
-                // LocalStorageから既存ユーザーを取得
-                // TODO: Implement Firebase Authentication later
-                // Get an existing user from LocalStorage
-                const users = JSON.parse(localStorage.getItem('users')) || []
-                
-                // // 仮の処理
-                // await new Promise(resolve => setTimeout(resolve, 1000))
-                
-                // // 登録成功後はログインページへ
-                // router.push('/login')
-
-                // メール重複チェック
-                // Check for email duplication
-                const emailExists = users.some(user => user.email === formData.value.email)
-                if (emailExists) {
-                    showMessage('Email already exists', 'error')
-                    return
-                }
-                
-                // 新しいユーザーを作成
-                // Create a new user
-                const newUser = {
-                    id: Date.now().toString(),
-                    firstName: formData.value.firstName,
-                    lastName: formData.value.lastName,
-                    email: formData.value.email,
-                    country: formData.value.country,
-                    university: formData.value.university,
-                    createdAt: new Date().toISOString()
-                }
-                
-                // ユーザーをLocalStorageに追加
-                // Add the user to LocalStorage
-                users.push(newUser)
-                localStorage.setItem('users', JSON.stringify(users))
-                
-                showMessage('Registration successful!', 'success')
-                
-                // 登録成功後はログインページへ
-                // After successful registration, go to the login page
-                setTimeout(() => {
-                    router.push('/login')
-                }, 1500)
-            
-            } catch (error) {
-                console.error('Register error:', error)
-                showMessage('Registration failed. Please try again.', 'error')
-            } finally {
-                isLoading.value = false
-            }
-        }
-    }
+            // Redirect to login page with success message
+            setTimeout(() => {
+                router.push({
+                    path: "/login",
+                    query: { message: 'registration-success' }
+                })
+            }, 1500)
+        })
+        .catch((error) => {
+            console.log('Firebase Auth Error:', error.code)
+            showMessage(getErrorMessage(error.code), 'error')
+        })
+        .finally(() => {
+            isLoading.value = false
+        })
+}
 </script>
 
 <style scoped>
