@@ -109,6 +109,12 @@
                   <div class="dropdown-header">
                     <div class="fw-bold">{{ userName }}</div>
                     <small class="text-muted">{{ currentUser?.email }}</small>
+                    <!-- 役割バッジを追加 - BR (C.2): Role-based authentication -->
+                    <div v-if="userRole" class="mt-1">
+                      <span :class="roleClass" class="badge">
+                        {{ roleDisplay }}
+                      </span>
+                    </div>
                   </div>
                 </li>
                 <li><hr class="dropdown-divider"></li>
@@ -122,6 +128,20 @@
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                   </router-link>
                 </li>
+                <!-- 管理者専用メニュー - BR (C.2): Role-based authentication -->
+                <template v-if="isAdmin">
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <router-link class="dropdown-item text-warning" to="/admin">
+                      <i class="fas fa-crown me-2"></i>Admin Dashboard
+                    </router-link>
+                  </li>
+                  <li>
+                    <router-link class="dropdown-item text-warning" to="/admin/users">
+                      <i class="fas fa-users-cog me-2"></i>Manage Users
+                    </router-link>
+                  </li>
+                </template>
                 <li>
                   <a class="dropdown-item" href="#">
                     <i class="fas fa-cog me-2"></i>Settings
@@ -295,6 +315,8 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+import { db } from '../firebase/init'
 
 const router = useRouter()
 const route = useRoute()
@@ -305,6 +327,7 @@ const isNavbarVisible = ref(true)
 // State
 const hasNotifications = ref(true)
 const currentUser = ref(null)
+const userRole = ref(null) // BR (C.2): Role-based authentication
 const sidebarExpanded = ref(true)
 const searchQuery = ref('')
 const isSearchMode = ref(false)
@@ -329,6 +352,9 @@ const exitSearchMode = () => {
 // ユーザーがログインしているかどうかを真偽値で返す
 const isAuthenticated = computed(() => !!currentUser.value)
 
+// 管理者かどうかを判定 - BR (C.2): Role-based authentication
+const isAdmin = computed(() => userRole.value === 'admin')
+
 // ユーザー名を返す（ログインしていなければ "Guest"）
 // FirebaseのdisplayNameがあればそれを優先し、なければemailを使用
 const userName = computed(() => {
@@ -336,6 +362,29 @@ const userName = computed(() => {
   return currentUser.value.displayName || currentUser.value.email
 })
 
+// 役割の表示名 - BR (C.2): Role-based authentication
+const roleDisplay = computed(() => {
+  switch (userRole.value) {
+    case 'admin':
+      return 'Administrator'
+    case 'user':
+      return 'Student Member'
+    default:
+      return 'Member'
+  }
+})
+
+// 役割に応じたバッジのクラス - BR (C.2): Role-based authentication
+const roleClass = computed(() => {
+  switch (userRole.value) {
+    case 'admin':
+      return 'badge bg-warning text-dark'
+    case 'user':
+      return 'badge bg-primary'
+    default:
+      return 'badge bg-secondary'
+  }
+})
 
 // ユーザーのアバター画像URLを返す
 // FirebaseのphotoURLがあればそれを使用し、なければui-avatarsで自動生成
@@ -345,6 +394,20 @@ const userAvatar = computed(() => {
   }
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.value)}&size=32&background=007bff&color=ffffff`
 })
+
+// Firestoreからユーザーの役割を取得 - BR (C.2): Role-based authentication
+const getUserRole = async (uid) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid))
+    if (userDoc.exists()) {
+      return userDoc.data().role || 'user'
+    }
+    return 'user'
+  } catch (error) {
+    console.error('Error getting user role:', error)
+    return 'user'
+  }
+}
 
 // サイドバーの開閉状態を切り替える
 // 状態をlocalStorageに保存し、カスタムイベントを発火
@@ -377,8 +440,15 @@ const handleLogout = () => {
 // Lifecycle
 onMounted(() => {
   // Firebase認証状態監視
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     currentUser.value = user
+    // ユーザーの役割を取得 - BR (C.2): Role-based authentication
+    if (user) {
+      userRole.value = await getUserRole(user.uid)
+      console.log('User role loaded:', userRole.value)
+    } else {
+      userRole.value = null
+    }
   })
   
   // サイドバー状態復元
@@ -422,6 +492,12 @@ onUnmounted(() => {
   justify-content: space-between;
   max-width: 100vw;
 }
+
+/* Text Color */
+.text-warning {
+    color: coral!important;
+}
+
 
 /* === Layout Alignment System === */
 

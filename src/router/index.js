@@ -1,6 +1,8 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 import { getAuth, onAuthStateChanged } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+import { db } from '../firebase/init'
 
 // Lazy loading でコンポーネントをインポート
 // Import the component with lazy loading
@@ -12,6 +14,8 @@ const Recipes = () => import('../views/Recipes.vue')
 const Groups = () => import('../views/Groups.vue')
 const Events = () => import('../views/Events.vue')
 const Profile = () => import('../views/Profile.vue')
+const AdminDashboard = () => import('../views/AdminDashboard.vue')
+const ManageUsers = () => import('../views/ManageUsers.vue')
 const TermsOfService = () => import('../views/TermsOfService.vue')
 const PrivacyPolicy = () => import('../views/PrivacyPolicy.vue')
 const NotFound = () => import('../views/NotFound.vue')
@@ -96,6 +100,27 @@ const routes = [
             requiresAuth: true // 認証済みユーザーはアクセス不可
         }
     },
+    // 管理者専用ルート - BR (C.2): Role-based authentication
+    {
+        path: '/admin',
+        name: 'AdminDashboard',
+        component: AdminDashboard,
+        meta: {
+            title: 'Admin Dashboard - Global Plate',
+            requiresAuth: true,
+            requiresRole: 'admin' // 管理者権限が必要
+        }
+    },
+    {
+        path: '/admin/users',
+        name: 'ManageUsers',
+        component: ManageUsers,
+        meta: {
+            title: 'Manage Users - Global Plate',
+            requiresAuth: true,
+            requiresRole: 'admin' // 管理者権限が必要
+        }
+    },
     {
         path: '/terms',
         name: 'TermsOfService',
@@ -160,10 +185,24 @@ const getCurrentUser = () => {
     })
 }
 
+// Firestoreからユーザーの役割を取得
+const getUserRole = async (uid) => {
+    try {
+        const userDoc = await getDoc(doc(db, 'users', uid))
+        if (userDoc.exists()) {
+            return userDoc.data().role || 'user' // デフォルトは'user'
+        }
+        return 'user'
+    } catch (error) {
+        console.error('Error getting user role:', error)
+        return 'user'
+    }
+}
+
 
 // ナビゲーションガード
 // Navigation guard
-// ナビゲーションガード（Firebase認証対応）
+// ナビゲーションガード（Firebase認証対応 + 役割ベース対応）
 router.beforeEach(async (to, from, next) => {
     try {
         // ページタイトル設定
@@ -193,6 +232,23 @@ router.beforeEach(async (to, from, next) => {
             console.log('Redirecting to dashboard: User already authenticated')
             next('/dashboard')
             return
+        }
+
+        // 役割ベースのアクセス制御 - BR (C.2): Role-based authentication
+        if (to.meta.requiresRole && isAuthenticated) {
+            const userRole = await getUserRole(currentUser.uid)
+            console.log(`User role: ${userRole}`)
+            console.log(`Required role: ${to.meta.requiresRole}`)
+
+            if (userRole !== to.meta.requiresRole) {
+                console.log('Access denied: Insufficient role permissions')
+                // 権限不足の場合、ダッシュボードにリダイレクト
+                next({
+                    path: '/dashboard',
+                    query: { error: 'access-denied' }
+                })
+                return
+            }
         }
 
         // 通常のルートアクセス
