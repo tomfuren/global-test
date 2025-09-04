@@ -100,6 +100,33 @@
                                     </div>
                                 </div>
 
+                                <!-- 新しい役割選択フィールド -->
+                                <!-- New role selection field -->
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">Account Type</label>
+                                    <select
+                                        class="form-select"
+                                        :class="{ 'is-invalid': errors.role }"
+                                        id="role"
+                                        v-model="formData.role"
+                                        @blur="validateRole(true)"
+                                        @change="validateRole(true)"
+                                    >
+                                        <option value="">Select account type</option>
+                                        <option value="user">Student Member</option>
+                                        <option value="admin">Community Administrator</option>
+                                    </select>
+                                    <div v-if="errors.role" class="invalid-feedback">
+                                        {{ errors.role }}
+                                    </div>
+                                    <div class="form-text">
+                                        <small>
+                                            <strong>Student Member:</strong> Access recipes, events, and groups<br>
+                                            <strong>Community Administrator:</strong> Manage content and users
+                                        </small>
+                                    </div>
+                                </div>
+
                                 <div class="mb-3">
                                     <label for="university" class="form-label">University/School</label>
                                     <input
@@ -206,7 +233,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
+import { db } from '../firebase/init'
 
 const router = useRouter()
 const auth = getAuth()
@@ -217,6 +246,7 @@ const formData = ref({
     lastName: '',
     email: '',
     country: '',
+    role: '', // BR (C.2): Role-based authentication
     university: '',
     password: '',
     confirmPassword: '',
@@ -229,6 +259,7 @@ const errors = ref({
     lastName: null,
     email: null,
     country: null,
+    role: null, // BR (C.2): Role-based authentication
     university: null,
     password: null,
     confirmPassword: null,
@@ -243,71 +274,80 @@ const messageType = ref('')
 // メッセージ表示用のcomputed
 // Computed for displaying messages
 const messageClass = computed(() => {
-return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
+    return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
 })
 
 const messageIcon = computed(() => {
-return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
+    return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
 })
 
 // LocalStorageでのメッセージ用
 // For messages in LocalStorage
 const showMessage = (msg, type = 'success') => {
-message.value = msg
-messageType.value = type
-setTimeout(() => {
-    message.value = ''
-}, 3000)
+    message.value = msg
+    messageType.value = type
+    setTimeout(() => {
+        message.value = ''
+    }, 3000)
 }
 
 const validateFirstName = (blur) => {
-if (!formData.value.firstName.trim()) {
-    if (blur) errors.value.firstName = "First name is required"
-} else if (formData.value.firstName.trim().length < 2) {
-    if (blur) errors.value.firstName = "First name must be at least 2 characters"
-} else {
-    errors.value.firstName = null
-}
+    if (!formData.value.firstName.trim()) {
+        if (blur) errors.value.firstName = "First name is required"
+    } else if (formData.value.firstName.trim().length < 2) {
+        if (blur) errors.value.firstName = "First name must be at least 2 characters"
+    } else {
+        errors.value.firstName = null
+    }
 }
 
 const validateLastName = (blur) => {
-if (!formData.value.lastName.trim()) {
-    if (blur) errors.value.lastName = "Last name is required"
-} else if (formData.value.lastName.trim().length < 2) {
-    if (blur) errors.value.lastName = "Last name must be at least 2 characters"
-} else {
-    errors.value.lastName = null
-}
+    if (!formData.value.lastName.trim()) {
+        if (blur) errors.value.lastName = "Last name is required"
+    } else if (formData.value.lastName.trim().length < 2) {
+        if (blur) errors.value.lastName = "Last name must be at least 2 characters"
+    } else {
+        errors.value.lastName = null
+    }
 }
 
 const validateEmail = (blur) => {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 if (!formData.value.email.trim()) {
-    if (blur) errors.value.email = "Email address is required"
-} else if (!emailPattern.test(formData.value.email.trim())) {
-    if (blur) errors.value.email = "Please enter a valid email address"
-} else {
-    errors.value.email = null
-}
+        if (blur) errors.value.email = "Email address is required"
+    } else if (!emailPattern.test(formData.value.email.trim())) {
+        if (blur) errors.value.email = "Please enter a valid email address"
+    } else {
+        errors.value.email = null
+    }
 }
 
 const validateCountry = (blur) => {
-if (!formData.value.country || formData.value.country === '') {
-    if (blur) errors.value.country = "Please select your country"
-} else {
-    errors.value.country = null
+    if (!formData.value.country || formData.value.country === '') {
+        if (blur) errors.value.country = "Please select your country"
+    } else {
+        errors.value.country = null
+    }
 }
+
+// BR (C.2): Role-based authentication validation
+const validateRole = (blur) => {
+    if (!formData.value.role || formData.value.role === '') {
+        if (blur) errors.value.role = "Please select account type"
+    } else {
+        errors.value.role = null
+    }
 }
 
 const validateUniversity = (blur) => {
-if (!formData.value.university.trim()) {
-    if (blur) errors.value.university = "University/School is required"
-} else if (formData.value.university.trim().length < 3) {
-    if (blur) errors.value.university = "University name must be at least 3 characters"
-} else {
-    errors.value.university = null
-}
+    if (!formData.value.university.trim()) {
+        if (blur) errors.value.university = "University/School is required"
+    } else if (formData.value.university.trim().length < 3) {
+        if (blur) errors.value.university = "University name must be at least 3 characters"
+    } else {
+        errors.value.university = null
+    }
 }
 
 const validatePassword = (blur) => {
@@ -354,6 +394,7 @@ const isFormValid = computed(() => {
         formData.value.lastName &&
         formData.value.email &&
         formData.value.country &&
+        formData.value.role && // BR (C.2): Role-based authentication
         formData.value.university &&
         formData.value.password &&
         formData.value.confirmPassword &&
@@ -385,6 +426,7 @@ const register = () => {
     validateLastName(true)
     validateEmail(true)
     validateCountry(true)
+    validateRole(true) // BR (C.2): Role-based authentication
     validateUniversity(true)
     validatePassword(true)
     validateConfirmPassword(true)
@@ -397,15 +439,40 @@ const register = () => {
     isLoading.value = true
 
     createUserWithEmailAndPassword(auth, formData.value.email, formData.value.password)
-        .then((data) => {
+        .then(async (userCredential) => {
+            const user = userCredential.user
             console.log("Firebase Register Successful!")
-            console.log("New User:", data.user)
+            console.log("New User:", user)
             console.log("User Info:", {
                 firstName: formData.value.firstName,
                 lastName: formData.value.lastName,
                 country: formData.value.country,
+                role: formData.value.role, // BR (C.2): Role-based authentication
                 university: formData.value.university
             })
+            
+            // ユーザープロファイル情報をFirestoreに保存
+            const userProfile = {
+                uid: user.uid,
+                firstName: formData.value.firstName,
+                lastName: formData.value.lastName,
+                email: formData.value.email,
+                country: formData.value.country,
+                role: formData.value.role, // BR (C.2): Role-based authentication
+                university: formData.value.university,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+            
+            // Firestoreにユーザードキュメントを作成。FireStoreにユーザーの役割を保存するようにする
+            await setDoc(doc(db, 'users', user.uid), userProfile)
+            
+            // Firebase Authのdisplay nameを更新
+            await updateProfile(user, {
+                displayName: `${formData.value.firstName} ${formData.value.lastName}`
+            })
+            
+            console.log("User profile saved to Firestore:", userProfile)
             
             showMessage('Registration successful!', 'success')
             
