@@ -56,9 +56,9 @@
                   <th>Email</th>
                   <th>Role</th>
                   <th>Country</th>
-                  <th>Status</th>
+                  <!-- <th>Status</th> -->
                   <th>Joined</th>
-                  <th>Actions</th>
+                  <!-- <th>Actions</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -84,13 +84,13 @@
                     </span>
                   </td>
                   <td>{{ user.country }}</td>
-                  <td>
+                  <!-- <td>
                     <span :class="getStatusBadgeClass(user.status)" class="badge">
                       {{ user.status }}
                     </span>
-                  </td>
+                  </td> -->
                   <td>{{ formatDate(user.createdAt) }}</td>
-                  <td>
+                  <!-- <td>
                     <div class="btn-group btn-group-sm">
                       <button class="btn btn-outline-primary btn-sm" @click="editUser(user)">
                         <i class="fas fa-edit"></i>
@@ -99,7 +99,7 @@
                         <i class="fas fa-ban"></i>
                       </button>
                     </div>
-                  </td>
+                  </td> -->
                 </tr>
               </tbody>
             </table>
@@ -150,7 +150,7 @@ const users = ref([
     role: 'user',
     country: 'Japan',
     university: 'Tokyo University',
-    status: 'active',
+    // status: 'active',
     createdAt: new Date('2024-01-15')
   }
 ])
@@ -222,18 +222,18 @@ const previousPage = () => {
   }
 }
 
-// アクション関数
-const editUser = (user) => {
-  console.log('Edit user:', user)
-  // 実際のアプリケーションでは編集モーダルを表示
-}
+// // アクション関数
+// const editUser = (user) => {
+//   console.log('Edit user:', user)
+//   // 実際のアプリケーションでは編集モーダルを表示
+// }
 
-// ここでstatusを追加させることで、USERの状態を管理させる事が可能。管理者は、ユーザーアカウントの状態を管理可能。
-const toggleUserStatus = (user) => {
-  console.log('Toggle user status:', user)
-  // 実際のアプリケーションではAPIを呼び出してステータス変更
-  user.status = user.status === 'active' ? 'inactive' : 'active'
-}
+// // ここでstatusを追加させることで、USERの状態を管理させる事が可能。管理者は、ユーザーアカウントの状態を管理可能。
+// const toggleUserStatus = (user) => {
+//   console.log('Toggle user status:', user)
+//   // 実際のアプリケーションではAPIを呼び出してステータス変更
+//   user.status = user.status === 'active' ? 'inactive' : 'active'
+// }
 
 onMounted(() => {
   console.log('Manage Users page loaded')
