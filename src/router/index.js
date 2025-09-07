@@ -19,6 +19,7 @@ const ManageUsers = () => import('../views/ManageUsers.vue')
 const TermsOfService = () => import('../views/TermsOfService.vue')
 const PrivacyPolicy = () => import('../views/PrivacyPolicy.vue')
 const NotFound = () => import('../views/NotFound.vue')
+const RecipeDetail = () => import('../views/RecipeDetail.vue')
 
 const routes = [
     {
@@ -143,6 +144,14 @@ const routes = [
         component: NotFound,
         meta: {
             title: 'NotFound - Global Plate'
+        }
+    },
+    {
+        path: '/recipes/:id',
+        name: 'RecipeDetail',
+        component: RecipeDetail,
+            meta: {
+            title: 'Privacy Policy - Global Plate'
         }
     }
 ]
