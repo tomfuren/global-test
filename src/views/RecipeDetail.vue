@@ -1,22 +1,22 @@
 <template>
   <div class="recipe-detail">
     <div class="container-fluid px-4 py-4">
-      <!-- 戻るボタン -->
+      <!-- Back button -->
       <div class="mb-3">
         <router-link to="/recipes" class="btn btn-outline-secondary">
           <i class="fas fa-arrow-left me-2"></i>Back to Recipes
         </router-link>
       </div>
 
-      <!-- レシピが見つからない場合 -->
+      <!-- If you can't find a recipe -->
       <div v-if="!recipe" class="text-center py-5">
         <h3>Recipe not found</h3>
         <p class="text-muted">The recipe you're looking for doesn't exist.</p>
       </div>
 
-      <!-- レシピ詳細 -->
+      <!-- Recipe details -->
       <div v-else>
-        <!-- ヘッダー情報 -->
+        <!-- Header information -->
         <div class="row mb-4">
           <div class="col-lg-6">
             <img 
@@ -29,7 +29,7 @@
             <h1 class="h2 mb-3">{{ recipe.title }}</h1>
             <p class="text-muted mb-3">{{ recipe.description }}</p>
             
-            <!-- 作者情報 -->
+            <!-- Author information -->
             <div class="card mb-3">
               <div class="card-body">
                 <h6 class="card-title">Recipe by</h6>
@@ -48,7 +48,7 @@
               </div>
             </div>
 
-            <!-- 基本情報 -->
+            <!-- basic information -->
             <div class="row g-3">
               <div class="col-6">
                 <div class="text-center p-3 bg-light rounded">
@@ -82,7 +82,7 @@
           </div>
         </div>
 
-        <!-- タグ -->
+        <!-- tags -->
         <div class="mb-4">
           <span 
             v-for="tag in recipe.tags" 
@@ -93,7 +93,7 @@
           </span>
         </div>
 
-        <!-- 材料と手順 -->
+        <!-- Materials and Procedure -->
         <div class="row">
           <div class="col-lg-4">
             <div class="card">
@@ -116,7 +116,7 @@
               </div>
             </div>
 
-            <!-- 栄養情報 -->
+            <!-- Nutritional Information -->
             <div class="card mt-3" v-if="recipe.nutritionInfo">
               <div class="card-header">
                 <h6 class="card-title mb-0">
@@ -168,7 +168,7 @@
           </div>
         </div>
 
-        <!-- 評価セクション（将来実装） -->
+        <!-- Evaluation section -->
         <RatingComponent 
             target-type="recipe" 
             :target-id="recipe.id" 
@@ -187,9 +187,11 @@ const route = useRoute()
 const recipe = ref(null)
 
 // レシピデータを取得
+// Get recipe data
 const getRecipeById = async (id) => {
   try {
     // JSONファイルからレシピデータを読み込み
+    // Read recipe data from a JSON file
     const response = await fetch('/src/assets/JSON/recipes.json')
     const recipes = await response.json()
     return recipes.find(recipe => recipe.id === id)
@@ -199,7 +201,7 @@ const getRecipeById = async (id) => {
   }
 }
 
-// 作者のアバター生成
+// Author avatar generation
 const getAuthorAvatar = (author) => {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&size=40&background=007bff&color=ffffff`
 }
@@ -219,7 +221,7 @@ onMounted(async () => {
   background-color: #f8f9fa;
 }
 
-/* デスクトップでサイドバーがある場合の調整 */
+/* Adjustments for desktop with sidebar */
 @media (min-width: 992px) {
   .recipe-detail {
     margin-left: 4.5em;
@@ -227,7 +229,7 @@ onMounted(async () => {
   }
 }
 
-/* モバイル対応 */
+/* Mobile Compatible */
 @media (max-width: 768px) {
   .recipe-detail {
     padding-bottom: 4em;

@@ -239,6 +239,7 @@ onMounted(() => {
     if (route.query.message === 'registration-success') {
         showMessage('Registration successful! Please sign in with your new account.', 'success')
         // クエリパラメータをクリアして、リロード時の再表示を防ぐ
+        // Clear query parameters to prevent redisplay on reload
         router.replace({ path: route.path })
     }
 })

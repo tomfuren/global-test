@@ -1,6 +1,6 @@
 <template>
   <div class="rating-component">
-    <!-- 評価表示のみモード -->
+    <!-- Rating display only mode -->
     <div v-if="displayOnly" class="rating-display-only">
       <div class="d-flex align-items-center">
         <div class="stars me-2">
@@ -17,9 +17,9 @@
       </div>
     </div>
 
-    <!-- フル機能モード -->
+    <!-- Fully functional mode -->
     <div v-else>
-      <!-- 評価表示 -->
+      <!-- Rating display -->
       <div class="rating-display mb-3">
         <div class="d-flex align-items-center">
           <div class="stars me-2">
@@ -36,22 +36,22 @@
         </div>
       </div>
 
-      <!-- 認証済みユーザーのみ評価可能 -->
+      <!-- Only authenticated users can rate -->
       <div v-if="isAuthenticated">
-        <!-- ユーザーがまだ評価していない場合 -->
+        <!-- If the user has not yet rated -->
         <div v-if="!userRating && !showRatingForm" class="mb-3">
           <button class="btn btn-outline-primary btn-sm" @click="showRatingForm = true">
             <i class="fas fa-star me-1"></i>Rate this recipe
           </button>
         </div>
 
-        <!-- 評価フォーム -->
+        <!-- Evaluation Form -->
         <div v-if="showRatingForm" class="rating-form mb-3">
           <div class="card">
             <div class="card-body">
               <h6 class="card-title">Rate this recipe</h6>
               
-              <!-- 星評価入力 -->
+              <!-- Enter star rating -->
               <div class="star-input mb-3">
                 <i 
                   v-for="star in 5" 
@@ -64,7 +64,7 @@
                 ></i>
               </div>
 
-              <!-- コメント入力 -->
+              <!-- Comment input -->
               <div class="mb-3">
                 <textarea 
                   v-model="newComment"
@@ -75,7 +75,7 @@
                 ></textarea>
               </div>
 
-              <!-- 送信ボタン -->
+              <!-- Submit button -->
               <div class="d-flex gap-2">
                 <button 
                   class="btn btn-primary btn-sm" 
@@ -96,7 +96,7 @@
           </div>
         </div>
 
-        <!-- ユーザーの既存評価 -->
+        <!-- Existing user ratings -->
         <div v-if="userRating" class="user-rating mb-3">
           <div class="card bg-light">
             <div class="card-body">
@@ -126,7 +126,7 @@
         </div>
       </div>
 
-      <!-- 未認証ユーザー -->
+      <!-- Unauthenticated Users -->
       <div v-else class="mb-3">
         <p class="text-muted small">
           <router-link to="/login" class="text-decoration-none">Sign in</router-link> 
@@ -134,7 +134,7 @@
         </p>
       </div>
 
-      <!-- レビュー一覧 -->
+      <!-- Review List -->
       <div v-if="reviews.length > 0" class="reviews-list">
         <h6 class="mb-3">Recent Reviews</h6>
         <div 
@@ -236,7 +236,7 @@ const totalRatings = computed(() => ratings.value.length)
 const reviews = computed(() => {
   return ratings.value
     .filter(rating => rating.comment && rating.comment.trim() !== '')
-    .slice(0, 5) // 最新5件のみ表示
+    .slice(0, 5) // Display only the latest 5 items
 })
 
 // Methods
@@ -315,13 +315,16 @@ const submitRating = async () => {
 
     if (userRating.value) {
       // 既存評価を更新
+      // Update an existing rating
       await updateDoc(doc(db, 'ratings', userRating.value.id), ratingData)
     } else {
       // 新規評価を追加
+      // Add a new rating
       await addDoc(collection(db, 'ratings'), ratingData)
     }
 
     // フォームをリセット
+    // Reset Form
     showRatingForm.value = false
     newRating.value = 0
     newComment.value = ''
@@ -363,6 +366,7 @@ const loadRatings = () => {
     }))
 
     // ユーザーの既存評価を検索
+    // Search existing user ratings
     if (currentUser.value) {
       userRating.value = ratings.value.find(
         rating => rating.userId === currentUser.value.uid
@@ -373,6 +377,7 @@ const loadRatings = () => {
 
 onMounted(() => {
   // 認証状態監視
+  // Authentication Status Monitoring
   onAuthStateChanged(auth, (user) => {
     currentUser.value = user
     if (user) {
@@ -381,6 +386,7 @@ onMounted(() => {
   })
 
   // 未認証でも評価一覧は表示
+  // The evaluation list is displayed even if you are not authenticated.
   loadRatings()
 })
 </script>

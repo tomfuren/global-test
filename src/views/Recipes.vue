@@ -1,13 +1,13 @@
 <template>
   <div class="recipes-page">
     <div class="container-fluid px-4 py-4">
-      <!-- ヘッダー -->
+      <!-- Header -->
       <div class="d-flex align-items-center mb-4">
         <i class="fas fa-utensils text-success me-3 fs-4"></i>
         <h1 class="h3 mb-0">Recipe Collection</h1>
       </div>
 
-      <!-- 検索とフィルター -->
+      <!-- Search and filter -->
       <div class="card mb-4">
         <div class="card-body">
           <div class="row g-3">
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <!-- レシピ一覧 -->
+      <!-- Recipe List -->
       <div class="row g-4">
         <div 
           v-for="recipe in filteredRecipes" 
@@ -52,7 +52,7 @@
           class="col-lg-4 col-md-6"
         >
           <div class="card h-100 recipe-card">
-            <!-- レシピ画像 -->
+            <!-- Recipe image -->
             <img 
               :src="recipe.image" 
               :alt="recipe.title"
@@ -60,12 +60,12 @@
             >
             
             <div class="card-body d-flex flex-column p-4">
-              <!-- 1. レシピタイトル -->
+              <!-- 1. Recipe Title -->
               <h5 class="card-title mb-3">{{ recipe.title }}</h5>
               
-              <!-- 2. 評価と作者情報を横並び -->
+              <!-- 2. Rating and author information side by side -->
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <!-- 作者情報（左） -->
+                <!-- Author information (left) -->
                 <div class="author-info">
                   <div class="d-flex align-items-center">
                     <img 
@@ -88,7 +88,7 @@
                 />
               </div>
 
-              <!-- 3. 基本情報 -->
+              <!-- 3. basic information -->
               <div class="recipe-meta mb-4">
                 <div class="d-flex justify-content-between text-muted small">
                   <span><i class="fas fa-clock me-1"></i>{{ recipe.cookingTime }}</span>
@@ -97,7 +97,7 @@
                 </div>
               </div>
 
-              <!-- 4. アクションボタン -->
+              <!-- 4. Action buttons -->
               <div class="mt-auto">
                 <router-link 
                   :to="'/recipes/' + recipe.id" 
@@ -111,7 +111,7 @@
         </div>
       </div>
 
-      <!-- レシピが見つからない場合 -->
+      <!-- If you can't find a recipe -->
       <div v-if="filteredRecipes.length === 0" class="text-center py-5">
         <i class="fas fa-search fs-1 text-muted mb-3"></i>
         <h4>No recipes found</h4>
@@ -126,18 +126,21 @@ import { ref, computed, onMounted } from 'vue'
 import RatingComponent from '../components/RatingComponent.vue'
 
 // レシピデータ
+// Recipe Data
 const recipes = ref([])
 const searchQuery = ref('')
 const cuisineFilter = ref('')
 const difficultyFilter = ref('')
 
 // JSONファイルからレシピを読み込み
+// Load a recipe from a JSON file
 const loadRecipes = async () => {
   try {
     const response = await fetch('/src/assets/JSON/recipes.json')
     const recipesData = await response.json()
     
     // 各レシピ
+    // Each recipe
     recipes.value = recipesData.map(recipe => ({
       ...recipe,
     }))
@@ -147,6 +150,7 @@ const loadRecipes = async () => {
 }
 
 // フィルタリング
+// filtering
 const filteredRecipes = computed(() => {
   return recipes.value.filter(recipe => {
     const matchesSearch = !searchQuery.value || 
@@ -162,6 +166,7 @@ const filteredRecipes = computed(() => {
 })
 
 // ユーティリティ関数
+// Utility Functions
 const getStarClass = (star, rating) => {
   return star <= rating ? 'text-warning' : 'text-muted'
 }
@@ -182,7 +187,7 @@ onMounted(() => {
   background-color: #f8f9fa;
 }
 
-/* デスクトップでサイドバーがある場合の調整 */
+/* Adjustments for desktop with sidebar */
 @media (min-width: 992px) {
   .recipes-page {
     margin-left: 4.5em;
@@ -190,7 +195,7 @@ onMounted(() => {
   }
 }
 
-/* モバイル対応 */
+/* Mobile Compatible */
 @media (max-width: 768px) {
   .recipes-page {
     padding-bottom: 4em;

@@ -452,6 +452,7 @@ const register = () => {
             })
             
             // ユーザープロファイル情報をFirestoreに保存
+            // Store user profile information in Firestore
             const userProfile = {
                 uid: user.uid,
                 firstName: formData.value.firstName,
@@ -465,6 +466,7 @@ const register = () => {
             }
             
             // Firestoreにユーザードキュメントを作成。FireStoreにユーザーの役割を保存するようにする
+            // Create a user document in Firestore. Save the user roles in Firestore.
             await setDoc(doc(db, 'users', user.uid), userProfile)
             
             // Firebase Authのdisplay nameを更新

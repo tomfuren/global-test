@@ -84,6 +84,8 @@
 <script setup>
 // シンプルな管理者ダッシュボード
 // 統計データは将来的にAPIから取得予定
+// Simple admin dashboard
+// Statistics will be available via API in the future.
 </script>
 
 <style scoped>
@@ -93,7 +95,7 @@
   background-color: #f8f9fa;
 }
 
-/* デスクトップでサイドバーがある場合の調整 */
+/* Adjustments for desktop with sidebar */
 @media (min-width: 992px) {
   .admin-dashboard {
     margin-left: 4.5em;
@@ -101,7 +103,7 @@
   }
 }
 
-/* モバイル対応 */
+/* Mobile Compatible */
 @media (max-width: 768px) {
   .admin-dashboard {
     padding-bottom: 4em;

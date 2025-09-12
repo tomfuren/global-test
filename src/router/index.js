@@ -180,7 +180,7 @@ const router = createRouter({
 //   }
 // }
 
-// Firebase認証の現在のユーザーを取得
+// Get current user for Firebase authentication
 const getCurrentUser = () => {
     return new Promise((resolve, reject) => {
         const unsubscribe = onAuthStateChanged(
@@ -194,7 +194,7 @@ const getCurrentUser = () => {
     })
 }
 
-// Firestoreからユーザーの役割を取得
+// Get user roles from Firestore
 const getUserRole = async (uid) => {
     try {
         const userDoc = await getDoc(doc(db, 'users', uid))
@@ -212,21 +212,22 @@ const getUserRole = async (uid) => {
 // ナビゲーションガード
 // Navigation guard
 // ナビゲーションガード（Firebase認証対応 + 役割ベース対応）
+// Navigation Guard (Firebase authentication support + role-based support)
 router.beforeEach(async (to, from, next) => {
     try {
-        // ページタイトル設定
+        // Page title settings
         if (to.meta.title) {
             document.title = to.meta.title
         }
 
-        // Firebase認証状態を取得
+        // Get Firebase authentication status
         const currentUser = await getCurrentUser()
         const isAuthenticated = !!currentUser
 
         console.log(`Navigating to: ${to.path}`)
         console.log(`Is authenticated: ${isAuthenticated}`)
 
-        // 認証が必要なルートへのアクセス
+        // Accessing routes that require authentication
         if (to.meta.requiresAuth && !isAuthenticated) {
             console.log('Redirecting to login: Authentication required')
             next({
@@ -236,7 +237,7 @@ router.beforeEach(async (to, from, next) => {
             return
         }
 
-        // ゲスト専用ルート（ログイン済みユーザーのアクセス制限）
+        // Guest-only route (restricted access for logged-in users)
         if (to.meta.requiresGuest && isAuthenticated) {
             console.log('Redirecting to dashboard: User already authenticated')
             next('/dashboard')
@@ -251,7 +252,7 @@ router.beforeEach(async (to, from, next) => {
 
             if (userRole !== to.meta.requiresRole) {
                 console.log('Access denied: Insufficient role permissions')
-                // 権限不足の場合、ダッシュボードにリダイレクト
+                // In case of insufficient permissions, redirect to dashboard
                 next({
                     path: '/dashboard',
                     query: { error: 'access-denied' }
@@ -260,13 +261,13 @@ router.beforeEach(async (to, from, next) => {
             }
         }
 
-        // 通常のルートアクセス
+        // Regular root access
         next()
 
     } catch (error) {
         console.error('Route guard error:', error)
         
-        // エラー時の処理
+        // Error handling
         if (to.meta.requiresAuth) {
             next('/login')
         } else {
