@@ -70,6 +70,7 @@
                   v-model="newComment"
                   class="form-control" 
                   rows="3" 
+                  maxlength="500"
                   placeholder="Share your thoughts about this recipe..."
                 ></textarea>
               </div>
@@ -79,7 +80,7 @@
                 <button 
                   class="btn btn-primary btn-sm" 
                   @click="submitRating"
-                  :disabled="newRating === 0 || isSubmitting"
+                  :disabled="newRating === 0 || isSubmitting || !isValidComment"
                 >
                   <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
                   Submit Review
@@ -266,6 +267,24 @@ const formatDate = (timestamp) => {
   })
 }
 
+// BR (C.4): Security
+const isValidComment = computed(() => {
+  const comment = newComment.value.trim()
+  
+  // Check comment length
+  if (comment.length > 500) return false
+  
+  // content check
+  const dangerousPatterns = [
+    /<script/i,
+    /javascript:/i,
+    /<iframe/i,
+    /on\w+=/i
+  ]
+  
+  return !dangerousPatterns.some(pattern => pattern.test(comment))
+})
+
 // Firestore operations
 const submitRating = async () => {
   if (!currentUser.value || newRating.value === 0) return
@@ -273,6 +292,14 @@ const submitRating = async () => {
   isSubmitting.value = true
   
   try {
+    // BR (C.4): Security
+    const sanitizedComment = newComment.value
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
+      .trim()
+
     const ratingData = {
       targetType: props.targetType,
       targetId: props.targetId,
@@ -281,8 +308,8 @@ const submitRating = async () => {
         name: currentUser.value.displayName || currentUser.value.email,
         email: currentUser.value.email
       },
-      rating: newRating.value,
-      comment: newComment.value.trim(),
+      rating: Math.max(1, Math.min(5, parseInt(newRating.value))), // Numeric range restrictions also added
+      comment: sanitizedComment, // Save sanitized comments
       createdAt: serverTimestamp()
     }
 
