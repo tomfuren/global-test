@@ -314,28 +314,36 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
+// BR (D.1): Firebase Authentication のインポート
+// ユーザーの認証状態を監視し、ログアウト機能を実装するために必要
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
+// Firestoreからユーザーの役割情報を取得するために必要
+import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase/init'
 
 const router = useRouter()
 const route = useRoute()
+// BR (D.1): Firebase Authenticationインスタンスを取得
 const auth = getAuth()
 
 const isNavbarVisible = ref(true)
 
-// State
-const hasNotifications = ref(true)
-const currentUser = ref(null)
-const userRole = ref(null) // BR (C.2): Role-based authentication
-const sidebarExpanded = ref(true)
-const searchQuery = ref('')
-const isSearchMode = ref(false)
+// State - NavBarの状態を管理する変数
+const hasNotifications = ref(true) // 通知の有無
+const currentUser = ref(null) // BR (D.1): 現在ログイン中のユーザー情報
+const userRole = ref(null) // BR (C.2): Role-based authentication - ユーザーの役割
+const sidebarExpanded = ref(true) // サイドバーの展開状態
+const searchQuery = ref('') // 検索クエリ
+const isSearchMode = ref(false) // 検索モードのオン/オフ
 
-// 検索モード制御関数
-// Search mode control function
+/**
+ * 検索モード制御関数
+ * モバイルで検索アイコンをクリックした時に検索モードに入る
+ */
 const enterSearchMode = () => {
   isSearchMode.value = true
+  // nextTick: DOMの更新が完了するまで待機
+  // 検索入力欄が表示された後にフォーカスを当てる
   nextTick(() => {
     const searchInput = document.querySelector('.search-mode-input')
     if (searchInput) {
@@ -344,25 +352,43 @@ const enterSearchMode = () => {
   })
 }
 
+/**
+ * 検索モードを終了し、検索クエリをクリア
+ */
 const exitSearchMode = () => {
   isSearchMode.value = false
   searchQuery.value = ''
 }
 
-// ユーザーがログインしているかどうかを真偽値で返す
+// Computed Properties - 動的に計算される値
+
+/**
+ * ユーザーがログインしているかどうかを真偽値で返す
+ * currentUser が存在すれば true、なければ false
+ */
 const isAuthenticated = computed(() => !!currentUser.value)
 
-// 管理者かどうかを判定 - BR (C.2): Role-based authentication
+/**
+ * BR (C.2): Role-based authentication
+ * 管理者かどうかを判定
+ * userRole が 'admin' の場合のみ true を返す
+ */
 const isAdmin = computed(() => userRole.value === 'admin')
 
-// ユーザー名を返す（ログインしていなければ "Guest"）
-// FirebaseのdisplayNameがあればそれを優先し、なければemailを使用
+/**
+ * ユーザー名を返す（ログインしていなければ "Guest"）
+ * Firebase の displayName がある場合はそれを優先し、なければ email を使用
+ */
 const userName = computed(() => {
   if (!currentUser.value) return 'Guest'
   return currentUser.value.displayName || currentUser.value.email
 })
 
-// 役割の表示名 - BR (C.2): Role-based authentication
+/**
+ * BR (C.2): Role-based authentication
+ * 役割の表示名を返す
+ * admin → 'Administrator', user → 'Student Member'
+ */
 const roleDisplay = computed(() => {
   switch (userRole.value) {
     case 'admin':
@@ -374,7 +400,11 @@ const roleDisplay = computed(() => {
   }
 })
 
-// 役割に応じたバッジのクラス - BR (C.2): Role-based authentication
+/**
+ * BR (C.2): Role-based authentication
+ * 役割に応じたバッジのBootstrapクラスを返す
+ * admin → 警告色（黄色）、user → プライマリ色（青色）
+ */
 const roleClass = computed(() => {
   switch (userRole.value) {
     case 'admin':
@@ -386,48 +416,80 @@ const roleClass = computed(() => {
   }
 })
 
-// ユーザーのアバター画像URLを返す
-// FirebaseのphotoURLがあればそれを使用し、なければui-avatarsで自動生成
+/**
+ * ユーザーのアバター画像URLを返す
+ * Firebase の photoURL がある場合（Google OAuth使用時など）はそれを使用し、
+ * ない場合は ui-avatars API で自動生成したアバターを使用
+ */
 const userAvatar = computed(() => {
   if (currentUser.value && currentUser.value.photoURL) {
     return currentUser.value.photoURL
   }
+  // ui-avatars.com: 名前からアバターを自動生成するサービス
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.value)}&size=32&background=007bff&color=ffffff`
 })
 
-// Firestoreからユーザーの役割を取得 - BR (C.2): Role-based authentication
+/**
+ * BR (C.2): Role-based authentication
+ * Firestoreからユーザーの役割を取得する関数
+ * 
+ * Firebase Authenticationには役割情報を保存できないため、
+ * Firestoreに別途保存した役割情報を取得する
+ * 
+ * @param {string} uid - Firebase AuthenticationのユーザーID
+ * @returns {Promise<string>} ユーザーの役割 ('admin' or 'user')
+ */
 const getUserRole = async (uid) => {
   try {
+    // Firestoreの'users'コレクションから、uidに対応するドキュメントを取得
     const userDoc = await getDoc(doc(db, 'users', uid))
     if (userDoc.exists()) {
+      // ドキュメントが存在する場合、role フィールドを取得
+      // role が未設定の場合はデフォルトで 'user' を返す
       return userDoc.data().role || 'user'
     }
+    // ドキュメントが存在しない場合（通常はあり得ない）、デフォルトで 'user'
     return 'user'
   } catch (error) {
     console.error('Error getting user role:', error)
+    // エラーが発生した場合もデフォルトで 'user' を返す
     return 'user'
   }
 }
 
-// サイドバーの開閉状態を切り替える
-// 状態をlocalStorageに保存し、カスタムイベントを発火
+/**
+ * サイドバーの開閉状態を切り替える
+ * 状態をlocalStorageに保存し、カスタムイベントを発火
+ * デスクトップでのみ動作する
+ */
 const toggleSidebar = () => {
   sidebarExpanded.value = !sidebarExpanded.value
+  // LocalStorageに保存して、ページ再読み込み後も状態を維持
   localStorage.setItem('sidebarExpanded', sidebarExpanded.value.toString())
   
+  // サイドバーが展開されている時は、背景のスクロールを無効化
   document.body.style.overflow = sidebarExpanded.value ? 'hidden' : ''
   
+  // 他のコンポーネント（メインコンテンツなど）にサイドバーの状態変更を通知
   window.dispatchEvent(new CustomEvent('sidebar-state-changed', {
     detail: { isExpanded: sidebarExpanded.value }
   }))
 }
 
-// Firebaseログアウト処理
-// ログアウト成功時、認証が必要なページならホームへリダイレクト
+/**
+ * BR (D.1): Firebase Authentication - ログアウト処理
+ * 
+ * Firebase の signOut() 関数を使用してログアウトを実行
+ * 成功時、Firebase が自動的に onAuthStateChanged を発火し、
+ * currentUser が null に更新される
+ * 
+ * 認証が必要なページにいる場合は、ホームページへリダイレクト
+ */
 const handleLogout = () => {
   signOut(auth)
     .then(() => {
       console.log('Firebase Sign out successful')
+      // 現在のページが認証必須ページなら、ホームへリダイレクト
       if (route.meta.requiresAuth) {
         router.push('/')
       }
@@ -437,33 +499,54 @@ const handleLogout = () => {
     })
 }
 
-// Lifecycle
+// Lifecycle Hooks
+
+/**
+ * コンポーネントがマウントされた時に実行される
+ */
 onMounted(() => {
-  // Firebase認証状態監視
+  /**
+   * BR (D.1): Firebase Authentication - 認証状態の監視
+   * 
+   * onAuthStateChanged: ユーザーの認証状態が変わるたびに呼ばれるリスナー
+   * 以下の場合に発火:
+   * - ユーザーがログインした時
+   * - ユーザーがログアウトした時
+   * - ページを再読み込みした時（認証状態の復元）
+   * - トークンが更新された時
+   * 
+   * これにより、ログイン/ログアウトに応じて NavBar の表示が自動的に更新される
+   */
   onAuthStateChanged(auth, async (user) => {
     currentUser.value = user
-    // ユーザーの役割を取得 - BR (C.2): Role-based authentication
+    // BR (C.2): ユーザーの役割を取得
     if (user) {
+      // ログイン中の場合、Firestoreから役割情報を取得
       userRole.value = await getUserRole(user.uid)
       console.log('User role loaded:', userRole.value)
     } else {
+      // ログアウト時は役割情報もクリア
       userRole.value = null
     }
   })
   
-  // サイドバー状態復元
+  // サイドバーの状態をLocalStorageから復元
   const savedSidebarState = localStorage.getItem('sidebarExpanded')
   if (savedSidebarState !== null) {
     sidebarExpanded.value = savedSidebarState === 'true'
   }
   
-  // イベントリスナー
+  // カスタムイベントリスナー: 他のコンポーネントからサイドバーを閉じる指示を受け取る
   window.addEventListener('close-sidebar', () => {
     sidebarExpanded.value = false
     localStorage.setItem('sidebarExpanded', 'false')
   })
 })
 
+/**
+ * コンポーネントがアンマウントされる前に実行される
+ * イベントリスナーを削除してメモリリークを防ぐ
+ */
 onUnmounted(() => {
   window.removeEventListener('close-sidebar', () => {
     sidebarExpanded.value = false
@@ -472,8 +555,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* トップナビゲーション - em/%単位使用版 */
-/* Top navigation - em/% unit version */
+/* 元のスタイルをそのまま維持 */
 .top-navbar {
   position: fixed;
   top: 0;
@@ -493,15 +575,10 @@ onUnmounted(() => {
   max-width: 100vw;
 }
 
-/* Text Color */
 .text-warning {
-    color: coral!important;
+  color: coral!important;
 }
 
-
-/* === Layout Alignment System === */
-
-/* Left section - logo area */
 .navbar-left {
   display: flex;
   align-items: center;
@@ -512,7 +589,6 @@ onUnmounted(() => {
   margin-right: 1em;
 }
 
-/* Center section - search bar area */
 .navbar-center {
   display: flex;
   justify-content: center;
@@ -523,7 +599,6 @@ onUnmounted(() => {
   padding: 0 1em;
 }
 
-/* Right section - User menu area */
 .navbar-right {
   display: flex;
   align-items: center;
@@ -535,7 +610,6 @@ onUnmounted(() => {
   margin-left: 1em;
 }
 
-/* === Button Style === */
 .btn-ghost {
   background: none;
   border: none;
@@ -551,7 +625,6 @@ onUnmounted(() => {
   color: #333;
 }
 
-/* === Search bar === */
 .search-container {
   width: 100%;
   max-width: 100%;
@@ -579,7 +652,6 @@ onUnmounted(() => {
   min-width: 3.75em;
 }
 
-/* === Notification Badge === */
 .notification-badge {
   position: absolute;
   top: 0.5em;
@@ -590,7 +662,6 @@ onUnmounted(() => {
   border-radius: 50%;
 }
 
-/* === Sidebar === */
 .sidebar {
   position: fixed;
   top: 3.5em;
@@ -608,7 +679,6 @@ onUnmounted(() => {
   width: 15em;
 }
 
-/* Hide text in collapsed state */
 .sidebar:not(.sidebar-expanded) .nav-text {
   display: none;
 }
@@ -674,7 +744,6 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* === Bottom Navigation === */
 .bottom-navbar {
   position: fixed;
   bottom: 0;
@@ -688,7 +757,7 @@ onUnmounted(() => {
 
 .bottom-nav-container {
   display: flex;
-  height: 3.75em; /* 60px → 3.75em */
+  height: 3.75em;
 }
 
 .bottom-nav-item {
@@ -717,7 +786,6 @@ onUnmounted(() => {
   margin-bottom: 0.25em;
 }
 
-/* === Drop-down menu === */
 .dropdown-menu {
   border: none;
   box-shadow: 0 0.25em 0.375em rgba(0,0,0,0.1);
@@ -735,9 +803,6 @@ onUnmounted(() => {
   font-size: 0.75rem;
 }
 
-/* === Responsive === */
-
-/* Tablet - Medium size */
 @media (max-width: 991.98px) and (min-width: 768px) {
   .top-navbar .container-fluid {
     padding: 0 1.5em;
@@ -758,7 +823,6 @@ onUnmounted(() => {
   }
 }
 
-/* Mobile - Larger */
 @media (max-width: 767.98px) and (min-width: 576px) {
   .top-navbar .container-fluid {
     padding: 0 1em;
@@ -791,7 +855,6 @@ onUnmounted(() => {
   }
 }
 
-/* Mobile - Smaller */
 @media (max-width: 575.98px) {
   .top-navbar .container-fluid {
     padding: 0 0.5em;
@@ -824,12 +887,11 @@ onUnmounted(() => {
   
   .btn-sm {
     padding: 0.25em 0.5em;
-    font-size: 1 rem;
+    font-size: 0.75rem;
     white-space: nowrap;
   }
 }
 
-/* Tiny screen */
 @media (max-width: 400px) {
   .top-navbar .container-fluid {
     padding: 0 0.25em;
@@ -859,7 +921,6 @@ onUnmounted(() => {
   }
 }
 
-/* === Search mode === */
 .search-mode-container {
   width: 100%;
 }
@@ -882,14 +943,12 @@ onUnmounted(() => {
   border-color: #dee2e6;
 }
 
-/* === Button size adjustment === */
 .btn-sm {
   padding: 0.25em 0.7em;
-  font-size: 1.2rem;
+  font-size: 0.875rem;
   border-radius: 0.25em;
 }
 
-/* Adjust the interval between authentication buttons */
 .navbar-right .btn-sm + .btn-sm {
   margin-left: 0.5em;
 }
@@ -900,7 +959,6 @@ onUnmounted(() => {
   }
 }
 
-/* === Content adjustment on desktop === */
 @media (min-width: 992px) {
   .main-content {
     margin-left: 4.5em;
