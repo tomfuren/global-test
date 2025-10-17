@@ -16,6 +16,7 @@ const Profile = () => import('../views/Profile.vue')
 const TermsOfService = () => import('../views/TermsOfService.vue')
 const PrivacyPolicy = () => import('../views/PrivacyPolicy.vue')
 const NotFound = () => import('../views/NotFound.vue')
+const SendEmail = () => import('../views/SendEmail.vue')
 
 const routes = [
   {
@@ -23,9 +24,10 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: {
-      title: 'Global Plate - A nutritional food community that connects international students with the world',
-      requiresAuth: false
-    }
+      title:
+        'Global Plate - A nutritional food community that connects international students with the world',
+      requiresAuth: false,
+    },
   },
   {
     path: '/login',
@@ -34,8 +36,8 @@ const routes = [
     meta: {
       title: 'Login - Global Plate',
       requiresAuth: false,
-      guest: true
-    }
+      guest: true,
+    },
   },
   {
     path: '/register',
@@ -44,8 +46,8 @@ const routes = [
     meta: {
       title: 'Register - Global Plate',
       requiresAuth: false,
-      guest: true
-    }
+      guest: true,
+    },
   },
   {
     path: '/dashboard',
@@ -53,8 +55,8 @@ const routes = [
     component: Dashboard,
     meta: {
       title: 'Dashboard - Global Plate',
-      requiresAuth: true
-    }
+      requiresAuth: true,
+    },
   },
   {
     path: '/recipes',
@@ -62,8 +64,8 @@ const routes = [
     component: Recipes,
     meta: {
       title: 'Recipes - Global Plate',
-      requiresAuth: false
-    }
+      requiresAuth: false,
+    },
   },
   {
     path: '/groups',
@@ -71,8 +73,8 @@ const routes = [
     component: Groups,
     meta: {
       title: 'Groups - Global Plate',
-      requiresAuth: true
-    }
+      requiresAuth: true,
+    },
   },
   {
     path: '/events',
@@ -80,8 +82,8 @@ const routes = [
     component: Events,
     meta: {
       title: 'Events - Global Plate',
-      requiresAuth: false
-    }
+      requiresAuth: false,
+    },
   },
   {
     path: '/profile',
@@ -89,33 +91,39 @@ const routes = [
     component: Profile,
     meta: {
       title: 'Profile - Global Plate',
-      requiresAuth: true
-    }
+      requiresAuth: true,
+    },
   },
   {
     path: '/terms',
     name: 'TermsOfService',
     component: TermsOfService,
     meta: {
-      title: 'Terms of Service - Global Plate'
-    }
+      title: 'Terms of Service - Global Plate',
+    },
   },
   {
     path: '/privacy',
     name: 'PrivacyPolicy',
     component: PrivacyPolicy,
     meta: {
-      title: 'Privacy Policy - Global Plate'
-    }
+      title: 'Privacy Policy - Global Plate',
+    },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: NotFound,
     meta: {
-      title: 'NotFound - Global Plate'
-    }
-  }
+      title: 'NotFound - Global Plate',
+    },
+  },
+  {
+    path: '/send-email',
+    name: 'SendEmail',
+    component: SendEmail,
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({
@@ -127,7 +135,7 @@ const router = createRouter({
     } else {
       return { top: 0 }
     }
-  }
+  },
 })
 
 // Firebase Authentication 状態を取得する関数
@@ -140,7 +148,7 @@ const getCurrentUser = () => {
         unsubscribe()
         resolve(user)
       },
-      reject
+      reject,
     )
   })
 }
@@ -160,7 +168,7 @@ router.beforeEach(async (to, from, next) => {
     console.log('Authentication required, redirecting to login')
     next({
       name: 'Login',
-      query: { redirect: to.fullPath }
+      query: { redirect: to.fullPath },
     })
     return
   }
