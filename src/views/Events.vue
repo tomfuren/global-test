@@ -9,6 +9,7 @@
 
 <script>
 export default {
-  name: 'Events'
+  // eslint-disable-next-line
+  name: 'Events',
 }
 </script>

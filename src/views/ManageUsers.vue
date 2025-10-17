@@ -32,12 +32,12 @@
           <div class="card-body">
             <div class="row g-3">
               <div class="col-md-6">
-                <input 
-                  type="search" 
-                  class="form-control" 
+                <input
+                  type="search"
+                  class="form-control"
                   placeholder="Search users..."
                   v-model="searchQuery"
-                >
+                />
               </div>
               <div class="col-md-6">
                 <select class="form-select" v-model="roleFilter">
@@ -74,12 +74,12 @@
                   <tr v-for="user in paginatedUsers" :key="user.id">
                     <td>
                       <div class="d-flex align-items-center">
-                        <img 
-                          :src="getUserAvatar(user)" 
-                          class="rounded-circle me-2" 
-                          width="32" 
+                        <img
+                          :src="getUserAvatar(user)"
+                          class="rounded-circle me-2"
+                          width="32"
                           height="32"
-                        >
+                        />
                         <div>
                           <div class="fw-bold">{{ getFullName(user) }}</div>
                           <small class="text-muted">{{ user.university || 'No university' }}</small>
@@ -107,13 +107,16 @@
             </div>
 
             <!-- ページネーション -->
-            <div v-if="totalPages > 1" class="d-flex justify-content-between align-items-center mt-3">
+            <div
+              v-if="totalPages > 1"
+              class="d-flex justify-content-between align-items-center mt-3"
+            >
               <div class="text-muted">
                 Showing {{ startIndex + 1 }} to {{ endIndex }} of {{ filteredUsers.length }} users
               </div>
               <div class="btn-group">
-                <button 
-                  class="btn btn-outline-secondary btn-sm" 
+                <button
+                  class="btn btn-outline-secondary btn-sm"
                   @click="previousPage"
                   :disabled="currentPage === 1"
                 >
@@ -122,8 +125,8 @@
                 <span class="btn btn-outline-secondary btn-sm disabled">
                   {{ currentPage }} / {{ totalPages }}
                 </span>
-                <button 
-                  class="btn btn-outline-secondary btn-sm" 
+                <button
+                  class="btn btn-outline-secondary btn-sm"
                   @click="nextPage"
                   :disabled="currentPage === totalPages"
                 >
@@ -140,6 +143,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+// eslint-disable-next-line
 import { collection, onSnapshot, query, orderBy, doc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase/init'
 
@@ -161,33 +165,33 @@ let unsubscribe = null
 const loadUsers = () => {
   try {
     console.log('Setting up Firestore listener for users...')
-    
-    const q = query(
-      collection(db, 'users'),
-      orderBy('createdAt', 'desc')
+
+    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'))
+
+    unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        console.log('Firestore snapshot received, documents:', snapshot.docs.length)
+
+        users.value = snapshot.docs.map((doc) => {
+          const data = doc.data()
+          console.log('User data:', data)
+
+          return {
+            id: doc.id,
+            ...data,
+          }
+        })
+
+        loading.value = false
+        console.log('Loaded users from Firestore:', users.value.length)
+      },
+      (err) => {
+        console.error('Error loading users:', err)
+        error.value = `Failed to load users: ${err.message}`
+        loading.value = false
+      },
     )
-
-    unsubscribe = onSnapshot(q, (snapshot) => {
-      console.log('Firestore snapshot received, documents:', snapshot.docs.length)
-      
-      users.value = snapshot.docs.map(doc => {
-        const data = doc.data()
-        console.log('User data:', data)
-        
-        return {
-          id: doc.id,
-          ...data
-        }
-      })
-      
-      loading.value = false
-      console.log('Loaded users from Firestore:', users.value.length)
-    }, (err) => {
-      console.error('Error loading users:', err)
-      error.value = `Failed to load users: ${err.message}`
-      loading.value = false
-    })
-
   } catch (err) {
     console.error('Error setting up users listener:', err)
     error.value = `Failed to connect to database: ${err.message}`
@@ -197,14 +201,15 @@ const loadUsers = () => {
 
 // フィルター済みユーザー
 const filteredUsers = computed(() => {
-  return users.value.filter(user => {
-    const matchesSearch = !searchQuery.value || 
+  return users.value.filter((user) => {
+    const matchesSearch =
+      !searchQuery.value ||
       (user.firstName && user.firstName.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
       (user.lastName && user.lastName.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
       (user.email && user.email.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    
+
     const matchesRole = !roleFilter.value || user.role === roleFilter.value
-    
+
     return matchesSearch && matchesRole
   })
 })
@@ -212,7 +217,9 @@ const filteredUsers = computed(() => {
 // ページネーション
 const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage))
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage)
-const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, filteredUsers.value.length))
+const endIndex = computed(() =>
+  Math.min(startIndex.value + itemsPerPage, filteredUsers.value.length),
+)
 const paginatedUsers = computed(() => {
   return filteredUsers.value.slice(startIndex.value, startIndex.value + itemsPerPage)
 })
@@ -245,15 +252,15 @@ const getRoleDisplay = (role) => {
 
 const formatDate = (timestamp) => {
   if (!timestamp) return 'Unknown'
-  
+
   try {
     // Firestore Timestampかどうかチェック
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    
+
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     })
   } catch (err) {
     console.error('Error formatting date:', err)
