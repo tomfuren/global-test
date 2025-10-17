@@ -2,7 +2,6 @@
  * Firebase Cloud Functions for Email Sending
  * BR (D.2): Email - SendGrid API Integration
  */
-
 // eslint-disable-next-line
 const functions = require('firebase-functions')
 // eslint-disable-next-line
