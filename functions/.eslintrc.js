@@ -1,5 +1,6 @@
 /* eslint-env node */
 module.exports = {
+  root: true,
   env: {
     es6: true,
     node: true,
@@ -12,6 +13,7 @@ module.exports = {
     'no-restricted-globals': ['error', 'name', 'length'],
     'prefer-arrow-callback': 'error',
     quotes: ['error', 'double', { allowTemplateLiterals: true }],
+    'no-unused-vars': ['error', { varsIgnorePattern: '^_' }],
   },
   overrides: [
     {
@@ -22,5 +24,12 @@ module.exports = {
       rules: {},
     },
   ],
-  globals: {},
+  globals: {
+    require: 'readonly',
+    module: 'readonly',
+    exports: 'readonly',
+    __dirname: 'readonly',
+    __filename: 'readonly',
+    process: 'readonly',
+  },
 }

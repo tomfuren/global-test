@@ -178,13 +178,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 
-// Week 9 Studio: Cloud Functionsとの連携
 // Week 9 Studio: Integration with Cloud Functions
-
-// Cloud Function URL (デプロイ後に更新)
-// Cloud Function URL (Update after deployment)
-// 例: https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/sendEmail
-const CLOUD_FUNCTION_URL = 'YOUR_CLOUD_FUNCTION_URL_HERE'
+const CLOUD_FUNCTION_URL = 'https://us-central1-global-plate-dev.cloudfunctions.net/sendEmail'
 
 // フォームデータ
 // Form data

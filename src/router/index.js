@@ -122,7 +122,10 @@ const routes = [
     path: '/send-email',
     name: 'SendEmail',
     component: SendEmail,
-    meta: { requiresAuth: true },
+    meta: {
+      title: 'Send Email - Global Plate',
+      requiresAuth: true,
+    },
   },
 ]
 
