@@ -4,19 +4,11 @@
       <!-- ヘッダー -->
       <div class="row mb-4">
         <div class="col-12">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 class="mb-1">
-                <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                Events
-              </h2>
-              <p class="text-muted">Discover and join cooking workshops and food events</p>
-            </div>
-            <button class="btn btn-primary" @click="showAddEventModal = true">
-              <i class="fas fa-plus me-2"></i>
-              Create Event
-            </button>
-          </div>
+          <h2 class="mb-1">
+            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+            Events
+          </h2>
+          <p class="text-muted">Discover and join cooking workshops and food events</p>
         </div>
       </div>
 
@@ -93,10 +85,10 @@
                   field="location"
                   header="Location"
                   :sortable="true"
-                  style="min-width: 180px"
+                  style="min-width: 150px"
                 >
                   <template #body="{ data }">
-                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>
+                    <i class="fas fa-map-marker-alt me-1"></i>
                     {{ data.location }}
                   </template>
                   <template #filter="{ filterModel, filterCallback }">
@@ -111,7 +103,7 @@
                 </Column>
 
                 <!-- Type Column -->
-                <Column field="type" header="Event Type" :sortable="true" style="min-width: 150px">
+                <Column field="type" header="Type" :sortable="true" style="min-width: 150px">
                   <template #body="{ data }">
                     <span
                       class="badge"
@@ -172,7 +164,7 @@
                   <template #body="{ data }">
                     <div class="text-center">
                       <i class="fas fa-users me-1"></i>
-                      {{ data.participants }} / {{ data.maxParticipants }}
+                      {{ data.participants }}/{{ data.maxParticipants }}
                     </div>
                   </template>
                 </Column>
@@ -205,7 +197,7 @@
                       @click="joinEvent(data)"
                       :disabled="data.status === 'Full' || data.status === 'Cancelled'"
                     >
-                      <i class="fas fa-user-plus"></i>
+                      <i class="fas fa-plus"></i> Join
                     </button>
                   </template>
                 </Column>
@@ -213,7 +205,7 @@
                 <!-- Empty State -->
                 <template #empty>
                   <div class="text-center py-5">
-                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
                     <p class="text-muted">No events found.</p>
                   </div>
                 </template>
@@ -250,7 +242,6 @@ const FilterMatchMode = {
 // State
 const events = ref([])
 const loading = ref(false)
-const showAddEventModal = ref(false)
 
 // Filters for DataTable
 const filters = ref({
