@@ -112,9 +112,52 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
   }
 })
 
+// =============================================================================
+// BR (E.1): Cloud Functions - Firestore データカウント機能 (2nd Gen)
+// =============================================================================
+
 /**
- * バルクメール送信機能
+ * レシピの総数をカウントする機能
+ *
+ * 機能概要:
+ * - Firestoreの'recipes'コレクション内のドキュメント数をカウント
+ * - HTTPリクエストで呼び出し可能
+ * - CORS対応で外部からのアクセスを許可
  */
+exports.countRecipes = onRequest({ cors: true }, async (req, res) => {
+  console.log('=== countRecipes function called ===')
+
+  try {
+    // Firestoreから'recipes'コレクションを取得
+    const recipesCollection = admin.firestore().collection('recipes')
+
+    // コレクション内の全ドキュメントを取得
+    const snapshot = await recipesCollection.get()
+
+    // ドキュメント数をカウント
+    const count = snapshot.size
+
+    console.log(`Total recipes count: ${count}`)
+
+    // 成功レスポンスを返す
+    return res.status(200).json({
+      success: true,
+      count: count,
+      message: 'Successfully counted recipes',
+    })
+  } catch (error) {
+    // エラーハンドリング
+    console.error('Error counting recipes:', error)
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to count recipes',
+    })
+  }
+})
+
+// =============================================================================
+// BR バルクメール送信機能
+// =============================================================================
 exports.sendBulkEmail = onRequest({ cors: true }, async (req, res) => {
   console.log('=== sendBulkEmail function called ===')
 

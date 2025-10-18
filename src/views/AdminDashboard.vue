@@ -18,15 +18,12 @@
             </div>
           </div>
         </div>
+
+        <!-- BR (E.1): Cloud Functions - RecipeCounterコンポーネント統合 -->
         <div class="col-md-3">
-          <div class="card">
-            <div class="card-body text-center">
-              <i class="fas fa-utensils text-success fs-2 mb-2"></i>
-              <h5>Recipes</h5>
-              <h3 class="text-success">892</h3>
-            </div>
-          </div>
+          <RecipeCounter />
         </div>
+
         <div class="col-md-3">
           <div class="card">
             <div class="card-body text-center">
@@ -82,10 +79,8 @@
 </template>
 
 <script setup>
-// シンプルな管理者ダッシュボード
-// 統計データは将来的にAPIから取得予定
-// Simple admin dashboard
-// Statistics will be available via API in the future.
+// BR (E.1): Cloud Functions - RecipeCounterコンポーネントをインポート
+import RecipeCounter from '../components/RecipeCounter.vue'
 </script>
 
 <style scoped>
@@ -96,6 +91,7 @@
 }
 
 /* Adjustments for desktop with sidebar */
+/* デスクトップでサイドバーがある場合の調整 */
 @media (min-width: 992px) {
   .admin-dashboard {
     margin-left: 4.5em;
@@ -104,6 +100,7 @@
 }
 
 /* Mobile Compatible */
+/* モバイル対応 */
 @media (max-width: 768px) {
   .admin-dashboard {
     padding-bottom: 4em;
