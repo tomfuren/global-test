@@ -58,7 +58,10 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
 
     const msg = {
       to: to,
-      from: 'st.kosen.711@gmail.com',
+      from: {
+        email: 'st.kosen.711@gmail.com',
+        name: 'Global Plate Support',
+      },
       subject: subject,
       text: text,
       html: html || text,
