@@ -155,6 +155,165 @@ exports.countRecipes = onRequest({ cors: true }, async (req, res) => {
   }
 })
 
+/**
+ * ユーザーの総数をカウントする機能
+ *
+ * 機能概要:
+ * - Firestoreの'users'コレクション内のドキュメント数をカウント
+ * - ロール別（admin/user）の内訳も提供
+ */
+exports.countUsers = onRequest({ cors: true }, async (req, res) => {
+  console.log('=== countUsers function called ===')
+
+  try {
+    const usersCollection = admin.firestore().collection('users')
+    const snapshot = await usersCollection.get()
+
+    // 総数とロール別カウント
+    let totalUsers = snapshot.size
+    let adminCount = 0
+    let studentCount = 0
+
+    snapshot.forEach((doc) => {
+      const userData = doc.data()
+      if (userData.role === 'admin') {
+        adminCount++
+      } else {
+        studentCount++
+      }
+    })
+
+    console.log(`Total users: ${totalUsers}, Admins: ${adminCount}, Students: ${studentCount}`)
+
+    return res.status(200).json({
+      success: true,
+      totalUsers: totalUsers,
+      adminUsers: adminCount,
+      studentUsers: studentCount,
+      message: 'Successfully counted users',
+    })
+  } catch (error) {
+    console.error('Error counting users:', error)
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to count users',
+    })
+  }
+})
+
+/**
+ * イベントの総数をカウントする機能
+ */
+exports.countEvents = onRequest({ cors: true }, async (req, res) => {
+  console.log('=== countEvents function called ===')
+
+  try {
+    const eventsCollection = admin.firestore().collection('events')
+    const snapshot = await eventsCollection.get()
+    const count = snapshot.size
+
+    console.log(`Total events count: ${count}`)
+
+    return res.status(200).json({
+      success: true,
+      count: count,
+      message: 'Successfully counted events',
+    })
+  } catch (error) {
+    console.error('Error counting events:', error)
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to count events',
+    })
+  }
+})
+
+/**
+ * 国別グループの総数をカウントする機能
+ */
+exports.countGroups = onRequest({ cors: true }, async (req, res) => {
+  console.log('=== countGroups function called ===')
+
+  try {
+    const groupsCollection = admin.firestore().collection('groups')
+    const snapshot = await groupsCollection.get()
+    const count = snapshot.size
+
+    console.log(`Total groups count: ${count}`)
+
+    return res.status(200).json({
+      success: true,
+      count: count,
+      message: 'Successfully counted groups',
+    })
+  } catch (error) {
+    console.error('Error counting groups:', error)
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to count groups',
+    })
+  }
+})
+
+/**
+ * すべての統計情報を一度に取得する機能
+ *
+ * 機能概要:
+ * - 全コレクションの統計を一度のリクエストで取得
+ * - 効率的なダッシュボード表示に最適
+ */
+exports.getStats = onRequest({ cors: true }, async (req, res) => {
+  console.log('=== getStats function called ===')
+
+  try {
+    const db = admin.firestore()
+
+    // 並列で全コレクションのデータを取得
+    const [usersSnapshot, recipesSnapshot, eventsSnapshot, groupsSnapshot] = await Promise.all([
+      db.collection('users').get(),
+      db.collection('recipes').get(),
+      db.collection('events').get(),
+      db.collection('groups').get(),
+    ])
+
+    // ユーザーのロール別カウント
+    let adminCount = 0
+    let studentCount = 0
+
+    usersSnapshot.forEach((doc) => {
+      const userData = doc.data()
+      if (userData.role === 'admin') {
+        adminCount++
+      } else {
+        studentCount++
+      }
+    })
+
+    const stats = {
+      totalUsers: usersSnapshot.size,
+      adminUsers: adminCount,
+      studentUsers: studentCount,
+      totalRecipes: recipesSnapshot.size,
+      totalEvents: eventsSnapshot.size,
+      totalGroups: groupsSnapshot.size,
+    }
+
+    console.log('All stats collected:', stats)
+
+    return res.status(200).json({
+      success: true,
+      stats: stats,
+      message: 'Successfully retrieved all statistics',
+    })
+  } catch (error) {
+    console.error('Error getting stats:', error)
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get statistics',
+    })
+  }
+})
+
 // =============================================================================
 // BR バルクメール送信機能
 // =============================================================================
