@@ -17,6 +17,7 @@ const TermsOfService = () => import('../views/TermsOfService.vue')
 const PrivacyPolicy = () => import('../views/PrivacyPolicy.vue')
 const NotFound = () => import('../views/NotFound.vue')
 const SendEmail = () => import('../views/SendEmail.vue')
+const GeoLocation = () => import('../views/GeoLocation.vue')
 
 const routes = [
   {
@@ -124,6 +125,15 @@ const routes = [
     component: SendEmail,
     meta: {
       title: 'Send Email - Global Plate',
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/geo-location',
+    name: 'GeoLocation',
+    component: GeoLocation,
+    meta: {
+      title: 'Restaurant Finder - Global Plate',
       requiresAuth: true,
     },
   },

@@ -52,7 +52,8 @@
 
           <!-- 認証済みユーザー -->
           <template v-else>
-            <div class="dropdown me-2">
+            <!-- 通知ボタン（将来の実装用にコメントアウト） -->
+            <!-- <div class="dropdown me-2">
               <button class="btn btn-ghost position-relative" data-bs-toggle="dropdown">
                 <i class="fas fa-bell"></i>
                 <span v-if="hasNotifications" class="notification-badge"></span>
@@ -64,7 +65,7 @@
                 <li><hr class="dropdown-divider" /></li>
                 <li><a class="dropdown-item text-center" href="#">See all</a></li>
               </ul>
-            </div>
+            </div> -->
 
             <div class="dropdown">
               <button class="btn btn-ghost d-flex align-items-center" data-bs-toggle="dropdown">
@@ -99,25 +100,9 @@
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                   </router-link>
                 </li>
-                <template v-if="isAdmin">
-                  <li><hr class="dropdown-divider" /></li>
-                  <li>
-                    <router-link class="dropdown-item text-warning" to="/admin">
-                      <i class="fas fa-crown me-2"></i>Admin Dashboard
-                    </router-link>
-                  </li>
-                  <li>
-                    <router-link class="dropdown-item text-warning" to="/admin/users">
-                      <i class="fas fa-users-cog me-2"></i>Manage Users
-                    </router-link>
-                  </li>
-                </template>
-                <li>
-                  <a class="dropdown-item" href="#"> <i class="fas fa-cog me-2"></i>Settings </a>
-                </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                  <a class="dropdown-item text-danger" href="#" @click="handleLogout">
+                  <a class="dropdown-item text-danger" href="#" @click.prevent="handleLogout">
                     <i class="fas fa-sign-out-alt me-2"></i>Sign out
                   </a>
                 </li>
@@ -151,6 +136,7 @@
   <!-- サイドバー（デスクトップのみ） -->
   <nav class="sidebar d-none d-lg-block" :class="{ 'sidebar-expanded': sidebarExpanded }">
     <div class="sidebar-content">
+      <!-- 公開ページセクション -->
       <div class="nav-section">
         <ul class="nav flex-column">
           <li class="nav-item">
@@ -169,6 +155,13 @@
             <router-link class="nav-link" to="/events" active-class="active">
               <i class="fas fa-calendar-alt"></i>
               <span class="nav-text">Events</span>
+            </router-link>
+          </li>
+          <!-- BR (E.2): Geo Location -->
+          <li class="nav-item">
+            <router-link class="nav-link" to="/geo-location" active-class="active">
+              <i class="fas fa-map-marked-alt"></i>
+              <span class="nav-text">Restaurant Finder</span>
             </router-link>
           </li>
         </ul>
@@ -200,19 +193,20 @@
         </ul>
       </div>
 
+      <!-- フッターセクション -->
       <div class="sidebar-footer">
         <div class="nav-divider"></div>
         <ul class="nav flex-column">
           <li class="nav-item">
-            <router-link class="nav-link" to="/about">
-              <i class="fas fa-info-circle"></i>
-              <span class="nav-text">About</span>
+            <router-link class="nav-link" to="/terms">
+              <i class="fas fa-file-contract"></i>
+              <span class="nav-text">Terms</span>
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/contact">
-              <i class="fas fa-envelope-open"></i>
-              <span class="nav-text">Contact</span>
+            <router-link class="nav-link" to="/privacy">
+              <i class="fas fa-shield-alt"></i>
+              <span class="nav-text">Privacy</span>
             </router-link>
           </li>
         </ul>
@@ -231,6 +225,12 @@
       <router-link class="bottom-nav-item" to="/recipes" active-class="active">
         <i class="fas fa-utensils"></i>
         <span>Recipes</span>
+      </router-link>
+
+      <!-- BR (E.2): Geo Location -->
+      <router-link class="bottom-nav-item" to="/geo-location" active-class="active">
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Map</span>
       </router-link>
 
       <router-link class="bottom-nav-item" to="/events" active-class="active">
@@ -275,7 +275,6 @@ const sidebarExpanded = ref(false)
 const isSearchMode = ref(false)
 const searchQuery = ref('')
 const isNavbarVisible = ref(true)
-const hasNotifications = ref(true)
 const searchInput = ref(null)
 
 // Computed
@@ -373,7 +372,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ... 既存のスタイルをそのまま保持 ... */
 /* トップナビゲーション */
 .top-navbar {
   position: fixed;
