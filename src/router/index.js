@@ -9,6 +9,8 @@ const Home = () => import('../views/Home.vue')
 const Login = () => import('../views/Login.vue')
 const Register = () => import('../views/Register.vue')
 const Dashboard = () => import('../views/Dashboard.vue')
+const AdminDashboard = () => import('../views/AdminDashboard.vue')
+const ManageUsers = () => import('../views/ManageUsers.vue')
 const Recipes = () => import('../views/Recipes.vue')
 const Groups = () => import('../views/Groups.vue')
 const Events = () => import('../views/Events.vue')
@@ -135,6 +137,26 @@ const routes = [
     meta: {
       title: 'Restaurant Finder - Global Plate',
       requiresAuth: true,
+    },
+  },
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+    meta: {
+      title: 'Admin Dashboard - Global Plate',
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
+  },
+  {
+    path: '/admin/users',
+    name: 'ManageUsers',
+    component: ManageUsers,
+    meta: {
+      title: 'Manage Users - Global Plate',
+      requiresAuth: true,
+      requiresAdmin: true,
     },
   },
 ]

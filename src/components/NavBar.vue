@@ -100,6 +100,20 @@
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                   </router-link>
                 </li>
+                <!-- BR (C.2): Admin専用メニュー -->
+                <template v-if="isAdmin">
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <router-link class="dropdown-item text-warning" to="/admin">
+                      <i class="fas fa-crown me-2"></i>Admin Dashboard
+                    </router-link>
+                  </li>
+                  <li>
+                    <router-link class="dropdown-item text-warning" to="/admin/users">
+                      <i class="fas fa-users-cog me-2"></i>Manage Users
+                    </router-link>
+                  </li>
+                </template>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
                   <a class="dropdown-item text-danger" href="#" @click.prevent="handleLogout">
@@ -279,11 +293,25 @@ const searchInput = ref(null)
 
 // Computed
 const userAvatar = computed(() => {
+  // Google認証のphotoURLがある場合はそれを使用
   if (currentUser.value?.photoURL) {
     return currentUser.value.photoURL
   }
-  const name = userName.value || 'User'
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=128&background=007bff&color=ffffff`
+
+  // displayNameまたはuserNameから頭文字を取得
+  let name = 'User'
+
+  if (userName.value && userName.value !== 'User') {
+    name = userName.value
+  } else if (currentUser.value?.displayName) {
+    name = currentUser.value.displayName
+  } else if (currentUser.value?.email) {
+    // メールアドレスから名前を生成
+    name = currentUser.value.email.split('@')[0]
+  }
+
+  // UI Avatarsで頭文字のアバターを生成
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=128&background=007bff&color=ffffff&bold=true`
 })
 
 const isAdmin = computed(() => userRole.value === 'admin')
