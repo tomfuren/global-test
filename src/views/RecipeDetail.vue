@@ -19,30 +19,28 @@
         <!-- Header information -->
         <div class="row mb-4">
           <div class="col-lg-6">
-            <img 
-              :src="recipe.image" 
-              :alt="recipe.title"
-              class="img-fluid rounded"
-            >
+            <img :src="recipe.image" :alt="recipe.title" class="img-fluid rounded" />
           </div>
           <div class="col-lg-6">
             <h1 class="h2 mb-3">{{ recipe.title }}</h1>
             <p class="text-muted mb-3">{{ recipe.description }}</p>
-            
+
             <!-- Author information -->
             <div class="card mb-3">
               <div class="card-body">
                 <h6 class="card-title">Recipe by</h6>
                 <div class="d-flex align-items-center">
-                  <img 
-                    :src="getAuthorAvatar(recipe.author)" 
-                    class="rounded-circle me-3" 
-                    width="40" 
+                  <img
+                    :src="getAuthorAvatar(recipe.author)"
+                    class="rounded-circle me-3"
+                    width="40"
                     height="40"
-                  >
+                  />
                   <div>
                     <div class="fw-bold">{{ recipe.author.name }}</div>
-                    <small class="text-muted">{{ recipe.author.country }} • {{ recipe.author.university }}</small>
+                    <small class="text-muted"
+                      >{{ recipe.author.country }} • {{ recipe.author.university }}</small
+                    >
                   </div>
                 </div>
               </div>
@@ -84,11 +82,7 @@
 
         <!-- tags -->
         <div class="mb-4">
-          <span 
-            v-for="tag in recipe.tags" 
-            :key="tag"
-            class="badge bg-secondary me-2 mb-2"
-          >
+          <span v-for="tag in recipe.tags" :key="tag" class="badge bg-secondary me-2 mb-2">
             {{ tag }}
           </span>
         </div>
@@ -98,17 +92,11 @@
           <div class="col-lg-4">
             <div class="card">
               <div class="card-header">
-                <h5 class="card-title mb-0">
-                  <i class="fas fa-list-ul me-2"></i>Ingredients
-                </h5>
+                <h5 class="card-title mb-0"><i class="fas fa-list-ul me-2"></i>Ingredients</h5>
               </div>
               <div class="card-body">
                 <ul class="list-unstyled">
-                  <li 
-                    v-for="(ingredient, index) in recipe.ingredients" 
-                    :key="index"
-                    class="mb-2"
-                  >
+                  <li v-for="(ingredient, index) in recipe.ingredients" :key="index" class="mb-2">
                     <i class="fas fa-check text-success me-2"></i>
                     {{ ingredient }}
                   </li>
@@ -149,30 +137,25 @@
           <div class="col-lg-8">
             <div class="card">
               <div class="card-header">
-                <h5 class="card-title mb-0">
-                  <i class="fas fa-utensils me-2"></i>Instructions
-                </h5>
+                <h5 class="card-title mb-0"><i class="fas fa-utensils me-2"></i>Instructions</h5>
               </div>
               <div class="card-body">
                 <ol class="instructions-list">
-                    <li 
-                    v-for="(instruction, index) in recipe.instructions" 
+                  <li
+                    v-for="(instruction, index) in recipe.instructions"
                     :key="index"
                     class="instruction-item"
-                    >
+                  >
                     {{ instruction }}
-                    </li>
+                  </li>
                 </ol>
-               </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Evaluation section -->
-        <RatingComponent 
-            target-type="recipe" 
-            :target-id="recipe.id" 
-        />
+        <RatingComponent target-type="recipe" :target-id="recipe.id" />
       </div>
     </div>
   </div>
@@ -181,23 +164,50 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/firebase/init'
 import RatingComponent from '../components/RatingComponent.vue'
 
 const route = useRoute()
 const recipe = ref(null)
+const loading = ref(false)
 
-// レシピデータを取得
-// Get recipe data
+// Firestoreからレシピデータを取得
+// Get recipe data from Firestore
 const getRecipeById = async (id) => {
+  loading.value = true
   try {
-    // JSONファイルからレシピデータを読み込み
-    // Read recipe data from a JSON file
-    const response = await fetch('/src/assets/JSON/recipes.json')
-    const recipes = await response.json()
-    return recipes.find(recipe => recipe.id === id)
+    console.log('Fetching recipe with ID:', id)
+
+    // Firestoreからドキュメントを取得
+    const docRef = doc(db, 'recipes', id)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+      console.log('Recipe found in Firestore:', docSnap.data())
+      return { id: docSnap.id, ...docSnap.data() }
+    } else {
+      console.log('No recipe found in Firestore with ID:', id)
+
+      // フォールバック: JSONファイルから読み込み
+      const response = await fetch('/src/assets/JSON/recipes.json')
+      const recipes = await response.json()
+      return recipes.find((recipe) => recipe.id === id)
+    }
   } catch (error) {
-    console.error('Error loading recipe:', error)
-    return null
+    console.error('Error loading recipe from Firestore:', error)
+
+    // エラーが発生した場合、JSONファイルからフォールバック
+    try {
+      const response = await fetch('/src/assets/JSON/recipes.json')
+      const recipes = await response.json()
+      return recipes.find((recipe) => recipe.id === id)
+    } catch (jsonError) {
+      console.error('Error loading recipe from JSON:', jsonError)
+      return null
+    }
+  } finally {
+    loading.value = false
   }
 }
 

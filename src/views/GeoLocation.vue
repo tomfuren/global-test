@@ -93,7 +93,7 @@
                   type="range"
                   class="form-range"
                   min="1"
-                  max="10"
+                  max="100"
                   step="1"
                 />
               </div>
@@ -215,6 +215,10 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+
+// 1. Firestoreのインポートを追加（既存のimportの下に追加）
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '@/firebase/init'
 
 // BR (E.2): MapBox API キー
 // MapBox API Key - Replace with your actual API key
@@ -381,34 +385,62 @@ const searchRestaurants = async () => {
  */
 const searchNearbyRestaurants = async (latitude, longitude) => {
   try {
-    // MapBox Places API でレストランを検索
-    // Search for restaurants using MapBox Places API
-    const placesUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${selectedCategory.value}.json?proximity=${longitude},${latitude}&limit=10&access_token=${MAPBOX_TOKEN}`
-    const placesResponse = await axios.get(placesUrl)
+    console.log('Searching restaurants from Firestore...')
 
-    // レストランデータを処理 / Process restaurant data
-    restaurants.value = placesResponse.data.features
-      .map((feature) => {
-        const [lng, lat] = feature.center
-        const distance = calculateDistance(latitude, longitude, lat, lng)
+    // Firestoreからすべてのレストラン/ストアを取得
+    const restaurantsCollection = collection(db, 'restaurants')
+    const snapshot = await getDocs(restaurantsCollection)
 
-        return {
-          name: feature.text,
-          address: feature.place_name,
-          latitude: lat,
-          longitude: lng,
-          distance: distance.toFixed(2),
-          rating: (Math.random() * 2 + 3).toFixed(1), // Mock rating for demo
-        }
-      })
-      .filter((restaurant) => restaurant.distance <= searchRadius.value)
+    if (snapshot.empty) {
+      console.log('No restaurants found in Firestore')
+      restaurants.value = []
+      return
+    }
+
+    // レストランデータを処理し、距離を計算
+    const allRestaurants = snapshot.docs.map((doc) => {
+      const data = doc.data()
+      const distance = calculateDistance(
+        latitude,
+        longitude,
+        data.location.latitude,
+        data.location.longitude,
+      )
+
+      return {
+        id: doc.id,
+        name: data.name,
+        type: data.type,
+        cuisine: data.cuisine,
+        address: data.address,
+        latitude: data.location.latitude,
+        longitude: data.location.longitude,
+        distance: distance.toFixed(2),
+        rating: data.averageRating || 'N/A',
+        priceRange: data.priceRange || '$$',
+        phone: data.phone,
+        website: data.website,
+        imageUrl: data.imageUrl,
+        features: data.features || [],
+        openingHours: data.openingHours || {},
+      }
+    })
+
+    // 検索半径内のレストランのみフィルタリングし、距離でソート
+    restaurants.value = allRestaurants
+      .filter((restaurant) => parseFloat(restaurant.distance) <= searchRadius.value)
       .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
 
-    // マップにレストランマーカーを表示 / Display restaurant markers on map
+    console.log(`Found ${restaurants.value.length} restaurants within ${searchRadius.value}km`)
+
+    // マップにレストランマーカーを表示
     displayRestaurantMarkers()
+
+    isLoading.value = false
   } catch (error) {
-    console.error('Error searching nearby restaurants:', error)
+    console.error('Error searching nearby restaurants from Firestore:', error)
     restaurants.value = []
+    isLoading.value = false
   }
 }
 

@@ -12,6 +12,7 @@ const Dashboard = () => import('../views/Dashboard.vue')
 const AdminDashboard = () => import('../views/AdminDashboard.vue')
 const ManageUsers = () => import('../views/ManageUsers.vue')
 const Recipes = () => import('../views/Recipes.vue')
+const RecipeDetail = () => import('../views/RecipeDetail.vue')
 const Groups = () => import('../views/Groups.vue')
 const Events = () => import('../views/Events.vue')
 const Profile = () => import('../views/Profile.vue')
@@ -67,6 +68,15 @@ const routes = [
     component: Recipes,
     meta: {
       title: 'Recipes - Global Plate',
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/recipes/:id',
+    name: 'RecipeDetail',
+    component: RecipeDetail,
+    meta: {
+      title: 'Recipe Details - Global Plate',
       requiresAuth: false,
     },
   },

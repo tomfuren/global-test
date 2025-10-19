@@ -232,6 +232,7 @@
 import { ref, onMounted } from 'vue'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase/init'
+import { seedEvents } from '@/utils/seedEvents'
 
 // PrimeVue FilterMatchMode
 const FilterMatchMode = {
@@ -469,8 +470,11 @@ const joinEvent = (event) => {
 }
 
 // コンポーネントマウント時にデータ取得
-onMounted(() => {
-  fetchEvents()
+onMounted(async () => {
+  // データを追加したい時だけコメントを外す
+  await seedEvents()
+
+  await fetchEvents()
 })
 </script>
 

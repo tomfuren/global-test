@@ -218,6 +218,10 @@
 import { ref, onMounted } from 'vue'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase/init'
+import { useRouter } from 'vue-router'
+
+// Setup内でrouterを取得
+const router = useRouter()
 
 // ============================================================================
 // BR (D.3): PrimeVue DataTable用のFilterMatchMode定義
@@ -269,114 +273,9 @@ const loadRecipes = async () => {
     console.log('Loaded recipes:', recipes.value.length)
   } catch (error) {
     console.error('Error fetching recipes:', error)
-
-    // Firestoreにデータがない場合、サンプルデータを表示
-    // Display sample data if no data exists in Firestore
-    if (recipes.value.length === 0) {
-      loadSampleData()
-    }
   } finally {
     loading.value = false
   }
-}
-
-// ============================================================================
-// サンプルデータを読み込み（開発・テスト用）
-// Load sample data (for development/testing)
-// ============================================================================
-const loadSampleData = () => {
-  recipes.value = [
-    {
-      id: '1',
-      title: 'Classic Sushi Rolls',
-      cuisine: 'Japanese',
-      difficulty: 'Medium',
-      cookingTime: '45 mins',
-      author: { name: 'Chef Tanaka' },
-      image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
-    },
-    {
-      id: '2',
-      title: 'Carbonara Pasta',
-      cuisine: 'Italian',
-      difficulty: 'Easy',
-      cookingTime: '30 mins',
-      author: { name: 'Chef Giovanni' },
-      image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400',
-    },
-    {
-      id: '3',
-      title: 'Kung Pao Chicken',
-      cuisine: 'Chinese',
-      difficulty: 'Medium',
-      cookingTime: '35 mins',
-      author: { name: 'Chef Wang' },
-      image: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400',
-    },
-    {
-      id: '4',
-      title: 'Chicken Tacos',
-      cuisine: 'Mexican',
-      difficulty: 'Easy',
-      cookingTime: '25 mins',
-      author: { name: 'Chef Maria' },
-      image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400',
-    },
-    {
-      id: '5',
-      title: 'Butter Chicken',
-      cuisine: 'Indian',
-      difficulty: 'Medium',
-      cookingTime: '50 mins',
-      author: { name: 'Chef Singh' },
-      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400',
-    },
-    {
-      id: '6',
-      title: 'Pad Thai',
-      cuisine: 'Thai',
-      difficulty: 'Medium',
-      cookingTime: '30 mins',
-      author: { name: 'Chef Somchai' },
-      image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=400',
-    },
-    {
-      id: '7',
-      title: 'Beef Burger',
-      cuisine: 'American',
-      difficulty: 'Easy',
-      cookingTime: '20 mins',
-      author: { name: 'Chef Mike' },
-      image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
-    },
-    {
-      id: '8',
-      title: 'Ramen Bowl',
-      cuisine: 'Japanese',
-      difficulty: 'Hard',
-      cookingTime: '60 mins',
-      author: { name: 'Chef Yamamoto' },
-      image: 'https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400',
-    },
-    {
-      id: '9',
-      title: 'Greek Salad',
-      cuisine: 'Greek',
-      difficulty: 'Easy',
-      cookingTime: '15 mins',
-      author: { name: 'Chef Nikos' },
-      image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400',
-    },
-    {
-      id: '10',
-      title: 'Fish and Chips',
-      cuisine: 'British',
-      difficulty: 'Medium',
-      cookingTime: '40 mins',
-      author: { name: 'Chef Oliver' },
-      image: 'https://images.unsplash.com/photo-1579208570378-8c970854bc23?w=400',
-    },
-  ]
 }
 
 // ============================================================================
@@ -384,8 +283,9 @@ const loadSampleData = () => {
 // View recipe details (placeholder for future implementation)
 // ============================================================================
 const viewRecipe = (recipe) => {
-  console.log('View recipe:', recipe)
-  alert(`Viewing recipe: ${recipe.title}`)
+  console.log('Navigating to recipe:', recipe.id)
+  // RecipeDetailページに遷移（idを使用）
+  router.push(`/recipes/${recipe.id}`)
 }
 
 // ============================================================================
@@ -467,8 +367,16 @@ const exportToCSV = () => {
 // コンポーネントマウント時にデータをロード
 // Load data when component is mounted
 // ============================================================================
-onMounted(() => {
-  loadRecipes()
+onMounted(async () => {
+  try {
+    console.log('Loading recipes...')
+    await loadRecipes()
+
+    console.log('=== All done ===')
+  } catch (error) {
+    console.error('=== ERROR ===')
+    console.error(error)
+  }
 })
 </script>
 
