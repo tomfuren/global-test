@@ -10,15 +10,31 @@
                 <p class="text-muted">Log in to your account</p>
               </div>
 
-              <!-- メッセージ表示 / Message Display -->
-              <div v-if="message" :class="messageClass" class="alert" role="alert">
-                <i :class="messageIcon" class="me-2"></i>
+              <!--
+                メッセージ表示 / Message Display
+                BR (E.3): Accessibility - aria-live="polite"でスクリーンリーダーに動的な変更を通知
+                BR (E.3): Accessibility - Notify screen readers of dynamic changes with aria-live="polite"
+              -->
+              <div
+                v-if="message"
+                :class="messageClass"
+                class="alert"
+                role="alert"
+                aria-live="polite"
+              >
+                <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                <i :class="messageIcon" class="me-2" aria-hidden="true"></i>
                 {{ message }}
               </div>
 
               <!-- ログインフォーム / Login Form -->
               <form @submit.prevent="handleEmailLogin">
-                <!-- Email -->
+                <!--
+                  Email入力フィールド
+                  BR (B.1): Validations - メールアドレス形式の検証を実装
+                  BR (B.1): Validations - Implement email address format validation
+                -->
                 <div class="mb-3">
                   <label for="email" class="form-label">Email Address</label>
                   <input
@@ -33,12 +49,20 @@
                     autocomplete="email"
                     required
                   />
-                  <div v-if="errors.email" class="invalid-feedback">
+                  <!--
+                    BR (E.3): Accessibility - role="alert"でエラーメッセージをスクリーンリーダーに即座に通知
+                    BR (E.3): Accessibility - Notify screen readers of error messages immediately with role="alert"
+                  -->
+                  <div v-if="errors.email" class="invalid-feedback" role="alert">
                     {{ errors.email }}
                   </div>
                 </div>
 
-                <!-- Password -->
+                <!--
+                  Password入力フィールド
+                  BR (B.1): Validations - パスワード長の検証を実装
+                  BR (B.1): Validations - Implement password length validation
+                -->
                 <div class="mb-3">
                   <label for="password" class="form-label">Password</label>
                   <input
@@ -53,7 +77,11 @@
                     autocomplete="current-password"
                     required
                   />
-                  <div v-if="errors.password" class="invalid-feedback">
+                  <!--
+                    BR (E.3): Accessibility - role="alert"でエラーメッセージをスクリーンリーダーに即座に通知
+                    BR (E.3): Accessibility - Notify screen readers of error messages immediately with role="alert"
+                  -->
+                  <div v-if="errors.password" class="invalid-feedback" role="alert">
                     {{ errors.password }}
                   </div>
                 </div>
@@ -61,7 +89,11 @@
                 <!-- ログインボタン / Login Button -->
                 <div class="d-grid mb-3">
                   <button type="submit" class="btn btn-primary btn-lg" :disabled="isLoading">
-                    <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <span
+                      v-if="isLoading"
+                      class="spinner-border spinner-border-sm me-2"
+                      aria-hidden="true"
+                    ></span>
                     Log in
                   </button>
                 </div>
@@ -71,22 +103,27 @@
                 </div>
               </form>
 
-              <hr class="my-4">
+              <hr class="my-4" />
 
-              <!-- 
+              <!--
                 BR (D.1): External Authentication - Google OAuth ログインボタン
                 Google OAuth を使用した外部認証機能を実装
                 Firebase Authentication の signInWithPopup() を使用して、
                 ユーザーがGoogleアカウントで簡単にログインできるようにする
-                
+
                 BR (D.1): External Authentication - Google OAuth Login Button
                 Implements external authentication using Google OAuth
                 Uses Firebase Authentication's signInWithPopup() to allow
                 users to easily sign in with their Google account
               -->
               <div class="d-grid mb-3">
-                <button @click="handleGoogleLogin" class="btn btn-outline-danger btn-lg" :disabled="isLoading">
-                  <i class="fab fa-google me-2"></i>
+                <button
+                  @click="handleGoogleLogin"
+                  class="btn btn-outline-danger btn-lg"
+                  :disabled="isLoading"
+                >
+                  <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                  <i class="fab fa-google me-2" aria-hidden="true"></i>
                   Continue with Google
                 </button>
               </div>
@@ -94,7 +131,7 @@
               <!-- 新規登録リンク / Sign Up Link -->
               <div class="text-center">
                 <p class="mb-0">
-                  Don't have an account?<br>
+                  Don't have an account?<br />
                   <router-link to="/register" class="text-decoration-none fw-bold">
                     Create New Account
                   </router-link>
@@ -113,7 +150,12 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 // BR (D.1): Firebase Authentication のインポート
 // Email/Password認証とGoogle OAuth認証のために必要な関数をインポート
-import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from 'firebase/auth'
 // Firestoreからユーザー情報を取得・保存するための関数をインポート
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '@/firebase/init'
@@ -127,13 +169,13 @@ const auth = getAuth()
 // Form data - ユーザーが入力するメールアドレスとパスワードを保持
 const formData = ref({
   email: '',
-  password: ''
+  password: '',
 })
 
 // State - エラーメッセージ、通知メッセージ、ローディング状態を管理
 const errors = ref({
   email: null,
-  password: null
+  password: null,
 })
 const message = ref('') // 成功/エラーメッセージ
 const messageType = ref('success') // メッセージタイプ ('success' or 'error')
@@ -174,9 +216,9 @@ const showMessage = (msg, type = 'success') => {
 const validateEmail = (blur) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!formData.value.email) {
-    if (blur) errors.value.email = "Email is required"
+    if (blur) errors.value.email = 'Email is required'
   } else if (!emailRegex.test(formData.value.email)) {
-    if (blur) errors.value.email = "Please enter a valid email address"
+    if (blur) errors.value.email = 'Please enter a valid email address'
   } else {
     errors.value.email = null
   }
@@ -189,9 +231,9 @@ const validateEmail = (blur) => {
  */
 const validatePassword = (blur) => {
   if (!formData.value.password) {
-    if (blur) errors.value.password = "Password is required"
+    if (blur) errors.value.password = 'Password is required'
   } else if (formData.value.password.length < 6) {
-    if (blur) errors.value.password = "Password must be at least 6 characters"
+    if (blur) errors.value.password = 'Password must be at least 6 characters'
   } else {
     errors.value.password = null
   }
@@ -212,7 +254,7 @@ const getErrorMessage = (errorCode) => {
     'auth/too-many-requests': 'Too many failed attempts. Please try again later',
     'auth/network-request-failed': 'Network error. Please check your connection',
     'auth/popup-closed-by-user': 'Sign-in popup was closed',
-    'auth/cancelled-popup-request': 'Sign-in was cancelled'
+    'auth/cancelled-popup-request': 'Sign-in was cancelled',
   }
   return errorMessages[errorCode] || 'Login failed. Please try again'
 }
@@ -226,31 +268,30 @@ const handleEmailLogin = async () => {
   // フォームの全フィールドを検証
   validateEmail(true)
   validatePassword(true)
-  
+
   // エラーがない場合のみログイン処理を実行
   if (!errors.value.email && !errors.value.password) {
     isLoading.value = true
-    
+
     try {
       // Firebase Authentication でログイン
       // signInWithEmailAndPassword は Promise を返し、成功時に UserCredential を返す
       const userCredential = await signInWithEmailAndPassword(
         auth,
         formData.value.email,
-        formData.value.password
+        formData.value.password,
       )
-      
+
       const user = userCredential.user
       console.log('Login successful:', user)
-      
+
       showMessage('Login successful!', 'success')
-      
+
       // リダイレクト先を決定（query に redirect がある場合はそこへ、なければダッシュボードへ）
       const redirectTo = route.query.redirect || '/dashboard'
       setTimeout(() => {
         router.push(redirectTo)
       }, 1000)
-      
     } catch (error) {
       console.error('Login error:', error)
       showMessage(getErrorMessage(error.code), 'error')
@@ -262,9 +303,9 @@ const handleEmailLogin = async () => {
 
 /**
  * BR (D.1): External Authentication - Google OAuth ログイン処理
- * 
+ *
  * この関数は外部認証サービス（Google）を使用したログイン機能を実装します
- * 
+ *
  * 処理フロー:
  * 1. GoogleAuthProvider を作成し、認証ポップアップを表示
  * 2. ユーザーがGoogleアカウントでログインを承認
@@ -272,7 +313,7 @@ const handleEmailLogin = async () => {
  * 4. Firestoreでユーザープロフィールの存在を確認
  * 5. 初回ログインの場合、Firestoreに追加のユーザー情報を保存
  * 6. 既存ユーザーの場合、最終ログイン時刻を更新
- * 
+ *
  * メリット:
  * - パスワード管理が不要（Googleが管理）
  * - 安全で信頼性の高い認証
@@ -280,33 +321,33 @@ const handleEmailLogin = async () => {
  */
 const handleGoogleLogin = async () => {
   isLoading.value = true
-  
+
   try {
     // GoogleAuthProvider インスタンスを作成
     // これはGoogle OAuth 2.0認証を処理するためのプロバイダー
     const provider = new GoogleAuthProvider()
-    
+
     // カスタムパラメータを設定
     // 'select_account' を指定することで、毎回アカウント選択画面を表示
     // これにより、複数のGoogleアカウントを持つユーザーが適切なアカウントを選択できる
     provider.setCustomParameters({
-      prompt: 'select_account'
+      prompt: 'select_account',
     })
-    
+
     // signInWithPopup で認証ポップアップを表示
     // ユーザーがGoogleアカウントを選択してログインを承認すると、
     // Firebase が自動的にユーザーをアプリケーションに認証する
     const result = await signInWithPopup(auth, provider)
     const user = result.user
-    
+
     console.log('Google login successful:', user)
-    
+
     // BR (D.1): Firestoreにユーザープロフィールが存在するか確認
     // Googleログインは初回でもFirebase Authenticationに自動登録されるが、
     // 追加のプロフィール情報（役割、大学など）はFirestoreに別途保存する必要がある
     const userDocRef = doc(db, 'users', user.uid)
     const userDoc = await getDoc(userDocRef)
-    
+
     // 初回ログインの場合、Firestoreにユーザー情報を保存
     if (!userDoc.exists()) {
       const userData = {
@@ -317,27 +358,30 @@ const handleGoogleLogin = async () => {
         provider: 'google', // 認証プロバイダーを記録
         role: 'user', // BR (C.2): デフォルトの役割を設定
         createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString()
+        lastLogin: new Date().toISOString(),
       }
-      
+
       await setDoc(userDocRef, userData)
       console.log('New user profile created in Firestore')
     } else {
       // 既存ユーザーの場合、最終ログイン時刻のみ更新
       // merge: true を指定することで、既存のデータを保持したまま特定フィールドのみ更新
-      await setDoc(userDocRef, {
-        lastLogin: new Date().toISOString()
-      }, { merge: true })
+      await setDoc(
+        userDocRef,
+        {
+          lastLogin: new Date().toISOString(),
+        },
+        { merge: true },
+      )
     }
-    
+
     showMessage('Welcome! Signed in with Google', 'success')
-    
+
     // リダイレクト先を決定
     const redirectTo = route.query.redirect || '/dashboard'
     setTimeout(() => {
       router.push(redirectTo)
     }, 1000)
-    
   } catch (error) {
     console.error('Google login error:', error)
     showMessage(getErrorMessage(error.code), 'error')
@@ -377,5 +421,18 @@ const handleGoogleLogin = async () => {
 
 .btn-outline-danger {
   border-radius: 10px;
+}
+
+/*
+  BR (E.3): Accessibility - フォーカス時の視覚的フィードバック強化
+  キーボード操作時にフォーカスが明確に見えるようにアウトラインを追加
+
+  BR (E.3): Accessibility - Enhanced visual feedback on focus
+  Add outline to make focus clearly visible during keyboard navigation
+*/
+.form-control:focus,
+.btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
 }
 </style>

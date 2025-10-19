@@ -4,19 +4,23 @@
     <div class="container-fluid">
       <!-- 通常モード / Normal mode -->
       <template v-if="!isSearchMode">
-        <!-- 左側セクション: メニューボタン + ロゴ -->
+        <!-- 左側セクション: メニューボタン + ロゴ/Left section: Menu button + logo -->
         <div class="navbar-left">
           <button class="btn btn-ghost me-3 d-none d-lg-block" @click="toggleSidebar">
-            <i class="fas fa-bars"></i>
+            <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+            <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+            <i class="fas fa-bars" aria-hidden="true"></i>
           </button>
 
           <router-link class="navbar-brand fw-bold text-primary d-flex align-items-center" to="/">
-            <i class="fas fa-globe me-2"></i>
+            <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+            <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+            <i class="fas fa-globe me-2" aria-hidden="true"></i>
             <span class="brand-text">Global Plate</span>
           </router-link>
         </div>
 
-        <!-- 中央セクション: 検索バー（デスクトップのみ） -->
+        <!-- 中央セクション: 検索バー（デスクトップのみ）/Center section: Search bar (desktop only) -->
         <div class="navbar-center">
           <div class="search-container d-none d-md-flex">
             <div class="input-group">
@@ -27,19 +31,23 @@
                 v-model="searchQuery"
               />
               <button class="btn btn-outline-secondary search-btn" type="button">
-                <i class="fas fa-search"></i>
+                <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                <i class="fas fa-search" aria-hidden="true"></i>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- 右側セクション: ユーザーメニュー -->
+        <!-- 右側セクション: ユーザーメニュー/Side section: User menu -->
         <div class="navbar-right">
           <button class="btn btn-ghost me-2 d-md-none" @click="enterSearchMode">
-            <i class="fas fa-search"></i>
+            <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+            <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+            <i class="fas fa-search" aria-hidden="true"></i>
           </button>
 
-          <!-- 未認証ユーザー -->
+          <!-- 未認証ユーザー/Unauthenticated Users -->
           <template v-if="!isAuthenticated">
             <router-link class="btn btn-outline-primary btn-sm" to="/login"> Log in </router-link>
             <router-link
@@ -50,12 +58,12 @@
             </router-link>
           </template>
 
-          <!-- 認証済みユーザー -->
+          <!-- 認証済みユーザー/Authenticated Users -->
           <template v-else>
             <!-- 通知ボタン（将来の実装用にコメントアウト） -->
             <!-- <div class="dropdown me-2">
               <button class="btn btn-ghost position-relative" data-bs-toggle="dropdown">
-                <i class="fas fa-bell"></i>
+                <i class="fas fa-bell" aria-hidden="true"></i>
                 <span v-if="hasNotifications" class="notification-badge"></span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
@@ -92,32 +100,48 @@
                 <li><hr class="dropdown-divider" /></li>
                 <li>
                   <router-link class="dropdown-item" to="/profile">
-                    <i class="fas fa-user me-2"></i>Your Profile
+                    <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                    <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                    <i class="fas fa-user me-2" aria-hidden="true"></i>Your Profile
                   </router-link>
                 </li>
                 <li>
                   <router-link class="dropdown-item" to="/dashboard">
-                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                    <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                    <i class="fas fa-tachometer-alt me-2" aria-hidden="true"></i>Dashboard
                   </router-link>
                 </li>
-                <!-- BR (C.2): Admin専用メニュー -->
+                <!--
+                  BR (C.2): Role-based authentication - Admin専用メニュー
+                  管理者ロールのユーザーのみ表示されるメニュー項目
+
+                  BR (C.2): Role-based authentication - Admin-only menu
+                  Menu items visible only to users with admin role
+                -->
                 <template v-if="isAdmin">
                   <li><hr class="dropdown-divider" /></li>
                   <li>
                     <router-link class="dropdown-item text-warning" to="/admin">
-                      <i class="fas fa-crown me-2"></i>Admin Dashboard
+                      <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                      <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                      <i class="fas fa-crown me-2" aria-hidden="true"></i>Admin Dashboard
                     </router-link>
                   </li>
                   <li>
                     <router-link class="dropdown-item text-warning" to="/admin/users">
-                      <i class="fas fa-users-cog me-2"></i>Manage Users
+                      <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                      <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                      <i class="fas fa-users-cog me-2" aria-hidden="true"></i>Manage Users
                     </router-link>
                   </li>
                 </template>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
                   <a class="dropdown-item text-danger" href="#" @click.prevent="handleLogout">
-                    <i class="fas fa-sign-out-alt me-2"></i>Sign out
+                    <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                    <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                    <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Sign out
                   </a>
                 </li>
               </ul>
@@ -126,11 +150,13 @@
         </div>
       </template>
 
-      <!-- 検索モード（モバイルのみ） -->
+      <!-- 検索モード（モバイルのみ）/Search Mode (Mobile Only) -->
       <template v-else>
         <div class="search-mode-container d-flex align-items-center w-100">
           <button class="btn btn-ghost me-3" @click="exitSearchMode">
-            <i class="fas fa-arrow-left"></i>
+            <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+            <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+            <i class="fas fa-arrow-left" aria-hidden="true"></i>
           </button>
 
           <div class="flex-grow-1">
@@ -147,7 +173,7 @@
     </div>
   </nav>
 
-  <!-- サイドバー（デスクトップのみ） -->
+  <!-- サイドバー（デスクトップのみ）/ Sidebar (Desktop Only) -->
   <nav class="sidebar d-none d-lg-block" :class="{ 'sidebar-expanded': sidebarExpanded }">
     <div class="sidebar-content">
       <!-- 公開ページセクション -->
@@ -155,71 +181,101 @@
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/" exact-active-class="active">
-              <i class="fas fa-home"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-home" aria-hidden="true"></i>
               <span class="nav-text">Home</span>
             </router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/recipes" active-class="active">
-              <i class="fas fa-utensils"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-utensils" aria-hidden="true"></i>
               <span class="nav-text">Recipes</span>
             </router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/events" active-class="active">
-              <i class="fas fa-calendar-alt"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-calendar-alt" aria-hidden="true"></i>
               <span class="nav-text">Events</span>
             </router-link>
           </li>
-          <!-- BR (E.2): Geo Location -->
+          <!--
+            BR (E.2): Geo Location - レストラン検索機能へのリンク
+            地図ベースの機能を提供するページへのナビゲーション
+
+            BR (E.2): Geo Location - Link to restaurant search feature
+            Navigation to page providing map-based functionality
+          -->
           <li class="nav-item">
             <router-link class="nav-link" to="/geo-location" active-class="active">
-              <i class="fas fa-map-marked-alt"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-map-marked-alt" aria-hidden="true"></i>
               <span class="nav-text">Restaurant Finder</span>
             </router-link>
           </li>
         </ul>
       </div>
 
-      <!-- 認証済みユーザー専用 -->
+      <!-- 認証済みユーザー専用 / Authenticated users only -->
       <div v-if="isAuthenticated" class="nav-section">
         <div class="nav-divider"></div>
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/dashboard" active-class="active">
-              <i class="fas fa-tachometer-alt"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
               <span class="nav-text">Dashboard</span>
             </router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/groups" active-class="active">
-              <i class="fas fa-users"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-users" aria-hidden="true"></i>
               <span class="nav-text">Groups</span>
             </router-link>
           </li>
-          <!-- BR (D.2): Email 機能へのリンク -->
+          <!--
+            BR (D.2): Email - メール送信機能へのリンク
+            添付ファイル付きメール送信ページへのナビゲーション
+
+            BR (D.2): Email - Link to email sending feature
+            Navigation to page for sending emails with attachments
+          -->
           <li class="nav-item">
             <router-link class="nav-link" to="/send-email" active-class="active">
-              <i class="fas fa-envelope"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-envelope" aria-hidden="true"></i>
               <span class="nav-text">Send Email</span>
             </router-link>
           </li>
         </ul>
       </div>
 
-      <!-- フッターセクション -->
+      <!-- フッターセクション / footer section -->
       <div class="sidebar-footer">
         <div class="nav-divider"></div>
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/terms">
-              <i class="fas fa-file-contract"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-file-contract" aria-hidden="true"></i>
               <span class="nav-text">Terms</span>
             </router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/privacy">
-              <i class="fas fa-shield-alt"></i>
+              <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+              <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+              <i class="fas fa-shield-alt" aria-hidden="true"></i>
               <span class="nav-text">Privacy</span>
             </router-link>
           </li>
@@ -228,27 +284,35 @@
     </div>
   </nav>
 
-  <!-- ボトムナビゲーション（モバイルのみ） -->
+  <!-- ボトムナビゲーション（モバイルのみ）/ bottom navigation for mobile -->
   <nav class="bottom-navbar d-lg-none">
     <div class="bottom-nav-container">
       <router-link class="bottom-nav-item" to="/" exact-active-class="active">
-        <i class="fas fa-home"></i>
+        <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+        <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+        <i class="fas fa-home" aria-hidden="true"></i>
         <span>Home</span>
       </router-link>
 
       <router-link class="bottom-nav-item" to="/recipes" active-class="active">
-        <i class="fas fa-utensils"></i>
+        <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+        <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+        <i class="fas fa-utensils" aria-hidden="true"></i>
         <span>Recipes</span>
       </router-link>
 
-      <!-- BR (E.2): Geo Location -->
+      <!-- BR (E.2): Geo Location - モバイルナビゲーション用の地図リンク -->
       <router-link class="bottom-nav-item" to="/geo-location" active-class="active">
-        <i class="fas fa-map-marked-alt"></i>
+        <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+        <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+        <i class="fas fa-map-marked-alt" aria-hidden="true"></i>
         <span>Map</span>
       </router-link>
 
       <router-link class="bottom-nav-item" to="/events" active-class="active">
-        <i class="fas fa-calendar-alt"></i>
+        <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+        <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
         <span>Events</span>
       </router-link>
 
@@ -258,12 +322,16 @@
         to="/dashboard"
         active-class="active"
       >
-        <i class="fas fa-tachometer-alt"></i>
+        <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+        <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+        <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
         <span>Dashboard</span>
       </router-link>
 
       <router-link v-else class="bottom-nav-item" to="/login" active-class="active">
-        <i class="fas fa-sign-in-alt"></i>
+        <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+        <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+        <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
         <span>Login</span>
       </router-link>
     </div>
@@ -284,6 +352,8 @@ const auth = getAuth()
 const isAuthenticated = ref(false)
 const currentUser = ref(null)
 const userName = ref('User')
+// BR (C.2): Role-based authentication - ユーザーロール
+// BR (C.2): Role-based authentication - User role
 const userRole = ref(null)
 const sidebarExpanded = ref(false)
 const isSearchMode = ref(false)
@@ -294,11 +364,13 @@ const searchInput = ref(null)
 // Computed
 const userAvatar = computed(() => {
   // Google認証のphotoURLがある場合はそれを使用
+  // Use Google-authenticated photo URL if available
   if (currentUser.value?.photoURL) {
     return currentUser.value.photoURL
   }
 
   // displayNameまたはuserNameから頭文字を取得
+  // Get initials from displayName or userName
   let name = 'User'
 
   if (userName.value && userName.value !== 'User') {
@@ -307,13 +379,17 @@ const userAvatar = computed(() => {
     name = currentUser.value.displayName
   } else if (currentUser.value?.email) {
     // メールアドレスから名前を生成
+    // Generate a name from an email address
     name = currentUser.value.email.split('@')[0]
   }
 
   // UI Avatarsで頭文字のアバターを生成
+  // Generate an initial avatar with UI Avatars
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=128&background=007bff&color=ffffff&bold=true`
 })
 
+// BR (C.2): Role-based authentication - 管理者権限の判定
+// BR (C.2): Role-based authentication - Check if user has admin role
 const isAdmin = computed(() => userRole.value === 'admin')
 
 const roleDisplay = computed(() => {
@@ -358,6 +434,13 @@ const handleLogout = async () => {
   }
 }
 
+/**
+ * BR (C.2): Role-based authentication - Firestoreからユーザープロフィールとロールを取得
+ * ユーザーのロール情報をFirestoreから読み込み、ナビゲーションメニューの表示を制御
+ *
+ * BR (C.2): Role-based authentication - Load user profile and role from Firestore
+ * Load user role information from Firestore to control navigation menu display
+ */
 const loadUserProfile = async (user) => {
   try {
     const userDocRef = doc(db, 'users', user.uid)
@@ -366,6 +449,8 @@ const loadUserProfile = async (user) => {
     if (userDoc.exists()) {
       const userData = userDoc.data()
       userName.value = userData.displayName || user.displayName || 'User'
+      // BR (C.2): ロールを取得
+      // BR (C.2): Get user role
       userRole.value = userData.role || 'user'
     } else {
       userName.value = user.displayName || 'User'
@@ -380,11 +465,15 @@ const loadUserProfile = async (user) => {
 
 // Lifecycle
 onMounted(() => {
+  // サイドバーの展開状態をlocalStorageから復元
+  // Restore sidebar expansion state from localStorage
   const savedState = localStorage.getItem('sidebarExpanded')
   if (savedState !== null) {
     sidebarExpanded.value = savedState === 'true'
   }
 
+  // Firebase認証状態の監視
+  // Monitor Firebase authentication state
   onAuthStateChanged(auth, async (user) => {
     isAuthenticated.value = !!user
     currentUser.value = user
@@ -400,7 +489,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* トップナビゲーション */
+/* トップナビゲーション/ top navigation */
 .top-navbar {
   position: fixed;
   top: 0;
@@ -476,7 +565,7 @@ onMounted(() => {
   border-radius: 50%;
 }
 
-/* サイドバー */
+/* サイドバー/ side bar */
 .sidebar {
   position: fixed;
   top: 3.5em;
@@ -571,5 +660,19 @@ onMounted(() => {
 .bottom-nav-item i {
   font-size: 1.25rem;
   margin-bottom: 0.25em;
+}
+
+/*
+  BR (E.3): Accessibility - フォーカス時の視覚的フィードバック強化
+  キーボード操作時にフォーカスが明確に見えるようにアウトラインを追加
+
+  BR (E.3): Accessibility - Enhanced visual feedback on focus
+  Add outline to make focus clearly visible during keyboard navigation
+*/
+.btn-ghost:focus,
+.nav-link:focus,
+.bottom-nav-item:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
 }
 </style>

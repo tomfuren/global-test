@@ -10,15 +10,31 @@
                 <p class="text-muted">Create your account</p>
               </div>
 
-              <!-- エラー・成功メッセージ -->
-              <!-- Error/Success Message -->
-              <div v-if="message" :class="messageClass" class="alert" role="alert">
-                <i :class="messageIcon" class="me-2"></i>
+              <!--
+                エラー・成功メッセージ
+                Error/Success Message
+                BR (E.3): Accessibility - aria-live="polite"でスクリーンリーダーに動的な変更を通知
+                BR (E.3): Accessibility - Notify screen readers of dynamic changes with aria-live="polite"
+              -->
+              <div
+                v-if="message"
+                :class="messageClass"
+                class="alert"
+                role="alert"
+                aria-live="polite"
+              >
+                <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                <i :class="messageIcon" class="me-2" aria-hidden="true"></i>
                 {{ message }}
               </div>
 
               <form @submit.prevent="register">
                 <div class="row">
+                  <!--
+                    BR (B.1): Validations - 名前の検証（最小2文字）
+                    BR (B.1): Validations - Name validation (minimum 2 characters)
+                  -->
                   <div class="col-md-6 mb-3">
                     <label for="firstName" class="form-label">First Name</label>
                     <input
@@ -32,7 +48,11 @@
                       @blur="validateFirstName(true)"
                       @input="validateFirstName(false)"
                     />
-                    <div v-if="errors.firstName" class="invalid-feedback">
+                    <!--
+                      BR (E.3): Accessibility - role="alert"でエラーメッセージをスクリーンリーダーに即座に通知
+                      BR (E.3): Accessibility - Notify screen readers of error messages immediately with role="alert"
+                    -->
+                    <div v-if="errors.firstName" class="invalid-feedback" role="alert">
                       {{ errors.firstName }}
                     </div>
                   </div>
@@ -49,12 +69,17 @@
                       @blur="validateLastName(true)"
                       @input="validateLastName(false)"
                     />
-                    <div v-if="errors.lastName" class="invalid-feedback">
+                    <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                    <div v-if="errors.lastName" class="invalid-feedback" role="alert">
                       {{ errors.lastName }}
                     </div>
                   </div>
                 </div>
 
+                <!--
+                  BR (B.1): Validations - メールアドレス形式の検証
+                  BR (B.1): Validations - Email address format validation
+                -->
                 <div class="mb-3">
                   <label for="email" class="form-label">Email Address</label>
                   <input
@@ -68,7 +93,8 @@
                     @blur="validateEmail(true)"
                     @input="validateEmail(false)"
                   />
-                  <div v-if="errors.email" class="invalid-feedback">
+                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <div v-if="errors.email" class="invalid-feedback" role="alert">
                     {{ errors.email }}
                   </div>
                 </div>
@@ -95,13 +121,19 @@
                     <option value="malaysia">Malaysia</option>
                     <option value="other">Other</option>
                   </select>
-                  <div v-if="errors.country" class="invalid-feedback">
+                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <div v-if="errors.country" class="invalid-feedback" role="alert">
                     {{ errors.country }}
                   </div>
                 </div>
 
-                <!-- BR (C.2): 役割選択フィールド -->
-                <!-- BR (C.2): Role selection field -->
+                <!--
+                  BR (C.2): Role-based authentication - 役割選択フィールド
+                  ユーザー登録時に役割（user/admin）を選択可能にする
+
+                  BR (C.2): Role-based authentication - Role selection field
+                  Allow users to select their role (user/admin) during registration
+                -->
                 <div class="mb-3">
                   <label for="role" class="form-label">Account Type</label>
                   <select
@@ -116,7 +148,8 @@
                     <option value="user">Student Member</option>
                     <option value="admin">Community Administrator</option>
                   </select>
-                  <div v-if="errors.role" class="invalid-feedback">
+                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <div v-if="errors.role" class="invalid-feedback" role="alert">
                     {{ errors.role }}
                   </div>
                   <div class="form-text">
@@ -140,11 +173,19 @@
                     @blur="validateUniversity(true)"
                     @input="validateUniversity(false)"
                   />
-                  <div v-if="errors.university" class="invalid-feedback">
+                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <div v-if="errors.university" class="invalid-feedback" role="alert">
                     {{ errors.university }}
                   </div>
                 </div>
 
+                <!--
+                  BR (B.1): Validations - パスワード強度の検証
+                  最低8文字、大文字・小文字・数字を含む
+
+                  BR (B.1): Validations - Password strength validation
+                  Minimum 8 characters, including uppercase, lowercase, and numbers
+                -->
                 <div class="mb-3">
                   <label for="password" class="form-label">Password</label>
                   <input
@@ -158,11 +199,16 @@
                     @blur="validatePassword(true)"
                     @input="validatePassword(false)"
                   />
-                  <div v-if="errors.password" class="invalid-feedback">
+                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <div v-if="errors.password" class="invalid-feedback" role="alert">
                     {{ errors.password }}
                   </div>
                 </div>
 
+                <!--
+                  BR (B.1): Validations - パスワード確認の検証
+                  BR (B.1): Validations - Password confirmation validation
+                -->
                 <div class="mb-3">
                   <label for="confirmPassword" class="form-label">Confirm Password</label>
                   <input
@@ -176,7 +222,8 @@
                     @blur="validateConfirmPassword(true)"
                     @input="validateConfirmPassword(false)"
                   />
-                  <div v-if="errors.confirmPassword" class="invalid-feedback">
+                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <div v-if="errors.confirmPassword" class="invalid-feedback" role="alert">
                     {{ errors.confirmPassword }}
                   </div>
                 </div>
@@ -200,14 +247,19 @@
                       >Privacy Policy</router-link
                     >
                   </label>
-                  <div v-if="errors.agree" class="invalid-feedback">
+                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <div v-if="errors.agree" class="invalid-feedback" role="alert">
                     {{ errors.agree }}
                   </div>
                 </div>
 
                 <div class="d-grid mb-3">
                   <button type="submit" class="btn btn-primary btn-lg" :disabled="isLoading">
-                    <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <span
+                      v-if="isLoading"
+                      class="spinner-border spinner-border-sm me-2"
+                      aria-hidden="true"
+                    ></span>
                     Create Account
                   </button>
                 </div>
@@ -215,15 +267,21 @@
 
               <hr class="my-4" />
 
-              <!-- BR (D.1): Google認証 -->
-              <!-- BR (D.1): Google Authentication -->
+              <!--
+                BR (D.1): External Authentication - Google認証
+                Googleアカウントでの新規登録機能
+
+                BR (D.1): External Authentication - Google Authentication
+                Sign up functionality using Google account
+              -->
               <div class="d-grid mb-3">
                 <button
                   @click="handleGoogleRegister"
                   class="btn btn-outline-danger btn-lg"
                   :disabled="isLoading"
                 >
-                  <i class="fab fa-google me-2"></i>
+                  <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                  <i class="fab fa-google me-2" aria-hidden="true"></i>
                   Sign up with Google
                 </button>
               </div>
@@ -312,6 +370,7 @@ const showMessage = (msg, type = 'success') => {
 }
 
 // Validation functions
+// BR (B.1): Validations - 各フィールドのバリデーション関数
 const validateFirstName = (blur) => {
   if (!formData.value.firstName.trim()) {
     if (blur) errors.value.firstName = 'First name is required'
@@ -448,8 +507,11 @@ const getErrorMessage = (errorCode) => {
 }
 
 /**
- * BR (C.1): Email/Password Registration
+ * BR (C.1): Authentication - Email/Password Registration
  * BR (C.2): Role-based authentication - ユーザー登録時に役割を設定
+ *
+ * Email/Passwordでの新規ユーザー登録処理
+ * Firestoreにユーザープロフィール情報（役割を含む）を保存
  */
 const register = async () => {
   // Validate all fields
@@ -525,8 +587,14 @@ const register = async () => {
 }
 
 /**
- * BR (D.1): Google Authentication Registration
+ * BR (D.1): External Authentication - Google Authentication Registration
  * Googleアカウントで新規登録
+ *
+ * 処理フロー:
+ * 1. GoogleAuthProviderでポップアップを表示
+ * 2. ユーザーがGoogleアカウントを選択
+ * 3. Firestoreでユーザープロフィールの存在確認
+ * 4. 初回の場合はFirestoreに保存、既存の場合はログインページへリダイレクト
  */
 const handleGoogleRegister = async () => {
   isLoading.value = true
@@ -648,5 +716,19 @@ const handleGoogleRegister = async () => {
 
 .invalid-feedback {
   display: block;
+}
+
+/*
+  BR (E.3): Accessibility - フォーカス時の視覚的フィードバック強化
+  キーボード操作時にフォーカスが明確に見えるようにアウトラインを追加
+
+  BR (E.3): Accessibility - Enhanced visual feedback on focus
+  Add outline to make focus clearly visible during keyboard navigation
+*/
+.form-control:focus,
+.form-select:focus,
+.btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
 }
 </style>
