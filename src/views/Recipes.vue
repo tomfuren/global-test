@@ -1,7 +1,7 @@
 <template>
   <div class="recipes-page">
     <div class="container-fluid py-4">
-      <!-- ヘッダー -->
+      <!-- ヘッダー / Header -->
       <div class="row mb-4">
         <div class="col-12">
           <h2 class="mb-1">
@@ -13,26 +13,41 @@
       </div>
 
       <!-- BR (D.3): Interactive Table Data - Table #1 -->
+      <!-- インタラクティブテーブルデータ - テーブル#1 -->
       <div class="row">
         <div class="col-12">
           <div class="card shadow-sm">
             <div class="card-body">
-              <!-- グローバル検索 -->
-              <div class="mb-3">
-                <div class="input-group">
-                  <span class="input-group-text">
-                    <i class="fas fa-search"></i>
-                  </span>
-                  <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Search recipes..."
-                    v-model="filters['global'].value"
-                  />
+              <!-- グローバル検索とエクスポートボタン / Global Search and Export Button -->
+              <div class="row mb-3">
+                <!-- グローバル検索バー / Global Search Bar -->
+                <div class="col-md-8">
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Search recipes..."
+                      v-model="filters['global'].value"
+                    />
+                  </div>
+                </div>
+
+                <!-- BR (E.4): Export - CSV Export Button -->
+                <!-- CSVエクスポートボタン / CSV Export Button -->
+                <div class="col-md-4 text-end">
+                  <button class="btn btn-success" @click="exportToCSV">
+                    <i class="fas fa-file-csv me-2"></i>
+                    Export to CSV
+                  </button>
                 </div>
               </div>
 
               <!-- PrimeVue DataTable -->
+              <!-- BR (D.3): ソート、検索、ページネーション機能付きのインタラクティブテーブル -->
+              <!-- BR (D.3): Interactive table with sort, search, and pagination features -->
               <DataTable
                 v-model:filters="filters"
                 :value="recipes"
@@ -47,7 +62,7 @@
                 responsiveLayout="scroll"
                 class="modern-table"
               >
-                <!-- Title Column -->
+                <!-- Title Column / タイトル列 -->
                 <Column
                   field="title"
                   header="Recipe Name"
@@ -62,10 +77,12 @@
                         width="40"
                         height="40"
                         style="object-fit: cover"
+                        alt="Recipe"
                       />
                       <strong>{{ data.title }}</strong>
                     </div>
                   </template>
+                  <!-- BR (D.3): 個別カラム検索 / Individual Column Search -->
                   <template #filter="{ filterModel, filterCallback }">
                     <input
                       type="text"
@@ -77,7 +94,57 @@
                   </template>
                 </Column>
 
-                <!-- Author Column -->
+                <!-- Cuisine Column / 料理ジャンル列 -->
+                <Column field="cuisine" header="Cuisine" :sortable="true" style="min-width: 150px">
+                  <template #body="{ data }">
+                    <span class="badge bg-primary">{{ data.cuisine }}</span>
+                  </template>
+                  <!-- BR (D.3): 個別カラム検索 / Individual Column Search -->
+                  <template #filter="{ filterModel, filterCallback }">
+                    <input
+                      type="text"
+                      v-model="filterModel.value"
+                      @input="filterCallback()"
+                      class="form-control form-control-sm"
+                      placeholder="Search by cuisine"
+                    />
+                  </template>
+                </Column>
+
+                <!-- Difficulty Column / 難易度列 -->
+                <Column
+                  field="difficulty"
+                  header="Difficulty"
+                  :sortable="true"
+                  style="min-width: 150px"
+                >
+                  <template #body="{ data }">
+                    <span
+                      :class="{
+                        'badge bg-success': data.difficulty === 'Easy',
+                        'badge bg-warning': data.difficulty === 'Medium',
+                        'badge bg-danger': data.difficulty === 'Hard',
+                      }"
+                    >
+                      {{ data.difficulty }}
+                    </span>
+                  </template>
+                  <!-- BR (D.3): 個別カラム検索（ドロップダウン） / Individual Column Search (Dropdown) -->
+                  <template #filter="{ filterModel, filterCallback }">
+                    <select
+                      v-model="filterModel.value"
+                      @change="filterCallback()"
+                      class="form-select form-select-sm"
+                    >
+                      <option value="">All</option>
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                    </select>
+                  </template>
+                </Column>
+
+                <!-- Author Column / 著者列 -->
                 <Column
                   field="author.name"
                   header="Author"
@@ -85,16 +152,9 @@
                   style="min-width: 150px"
                 >
                   <template #body="{ data }">
-                    <div class="d-flex align-items-center">
-                      <img
-                        :src="getAuthorAvatar(data.author)"
-                        class="rounded-circle me-2"
-                        width="24"
-                        height="24"
-                      />
-                      <span>{{ data.author.name }}</span>
-                    </div>
+                    {{ data.author.name }}
                   </template>
+                  <!-- BR (D.3): 個別カラム検索 / Individual Column Search -->
                   <template #filter="{ filterModel, filterCallback }">
                     <input
                       type="text"
@@ -106,77 +166,20 @@
                   </template>
                 </Column>
 
-                <!-- Cuisine Column -->
-                <Column field="cuisine" header="Cuisine" :sortable="true" style="min-width: 150px">
-                  <template #body="{ data }">
-                    <span class="badge bg-info">{{ data.cuisine }}</span>
-                  </template>
-                  <template #filter="{ filterModel, filterCallback }">
-                    <select
-                      v-model="filterModel.value"
-                      @change="filterCallback()"
-                      class="form-select form-select-sm"
-                    >
-                      <option value="">All Cuisines</option>
-                      <option value="Japanese">Japanese</option>
-                      <option value="Italian">Italian</option>
-                      <option value="Chinese">Chinese</option>
-                      <option value="Mexican">Mexican</option>
-                      <option value="Indian">Indian</option>
-                      <option value="Thai">Thai</option>
-                      <option value="American">American</option>
-                      <option value="French">French</option>
-                    </select>
-                  </template>
-                </Column>
-
-                <!-- Difficulty Column -->
-                <Column
-                  field="difficulty"
-                  header="Difficulty"
-                  :sortable="true"
-                  style="min-width: 120px"
-                >
-                  <template #body="{ data }">
-                    <span
-                      class="badge"
-                      :class="{
-                        'bg-success': data.difficulty === 'Easy',
-                        'bg-warning': data.difficulty === 'Medium',
-                        'bg-danger': data.difficulty === 'Hard',
-                      }"
-                    >
-                      {{ data.difficulty }}
-                    </span>
-                  </template>
-                  <template #filter="{ filterModel, filterCallback }">
-                    <select
-                      v-model="filterModel.value"
-                      @change="filterCallback()"
-                      class="form-select form-select-sm"
-                    >
-                      <option value="">All Levels</option>
-                      <option value="Easy">Easy</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Hard">Hard</option>
-                    </select>
-                  </template>
-                </Column>
-
-                <!-- Cooking Time Column -->
+                <!-- Cooking Time Column / 調理時間列 -->
                 <Column
                   field="cookingTime"
                   header="Cooking Time"
                   :sortable="true"
-                  style="min-width: 120px"
+                  style="min-width: 150px"
                 >
                   <template #body="{ data }">
-                    <i class="far fa-clock me-1"></i>
+                    <i class="fas fa-clock me-1"></i>
                     {{ data.cookingTime }}
                   </template>
                 </Column>
 
-                <!-- Actions Column -->
+                <!-- Actions Column / アクション列 -->
                 <Column header="Actions" style="min-width: 100px">
                   <template #body="{ data }">
                     <button class="btn btn-sm btn-outline-primary" @click="viewRecipe(data)">
@@ -185,7 +188,7 @@
                   </template>
                 </Column>
 
-                <!-- Empty State -->
+                <!-- Empty State / 空の状態 -->
                 <template #empty>
                   <div class="text-center py-5">
                     <i class="fas fa-search fa-3x text-muted mb-3"></i>
@@ -193,7 +196,7 @@
                   </div>
                 </template>
 
-                <!-- Loading State -->
+                <!-- Loading State / ローディング状態 -->
                 <template #loading>
                   <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
@@ -216,17 +219,28 @@ import { ref, onMounted } from 'vue'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase/init'
 
-// PrimeVue FilterMatchMode
+// ============================================================================
+// BR (D.3): PrimeVue DataTable用のFilterMatchMode定義
+// FilterMatchMode definitions for PrimeVue DataTable
+// ============================================================================
 const FilterMatchMode = {
   CONTAINS: 'contains',
   EQUALS: 'equals',
 }
 
-// State
+// ============================================================================
+// State - データとローディング状態の管理
+// State - Managing data and loading status
+// ============================================================================
 const recipes = ref([])
 const loading = ref(false)
 
-// Filters for DataTable
+// ============================================================================
+// BR (D.3): DataTable用のフィルター設定
+// Filter settings for DataTable
+// グローバル検索と個別カラム検索をサポート
+// Supports global search and individual column search
+// ============================================================================
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   title: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -235,9 +249,12 @@ const filters = ref({
   difficulty: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
-/**
- * Firestoreからレシピデータを取得
- */
+// ============================================================================
+// Firestoreからレシピデータを取得
+// Fetch recipe data from Firestore
+// Week 8 Studio: Firestoreのパターンに基づく実装
+// Implementation based on Week 8 Studio Firestore patterns
+// ============================================================================
 const loadRecipes = async () => {
   loading.value = true
   try {
@@ -254,6 +271,7 @@ const loadRecipes = async () => {
     console.error('Error fetching recipes:', error)
 
     // Firestoreにデータがない場合、サンプルデータを表示
+    // Display sample data if no data exists in Firestore
     if (recipes.value.length === 0) {
       loadSampleData()
     }
@@ -262,9 +280,10 @@ const loadRecipes = async () => {
   }
 }
 
-/**
- * サンプルデータを読み込み
- */
+// ============================================================================
+// サンプルデータを読み込み（開発・テスト用）
+// Load sample data (for development/testing)
+// ============================================================================
 const loadSampleData = () => {
   recipes.value = [
     {
@@ -337,102 +356,151 @@ const loadSampleData = () => {
       difficulty: 'Hard',
       cookingTime: '60 mins',
       author: { name: 'Chef Yamamoto' },
-      image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400',
+      image: 'https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400',
     },
     {
       id: '9',
-      title: 'Margherita Pizza',
-      cuisine: 'Italian',
-      difficulty: 'Medium',
-      cookingTime: '40 mins',
-      author: { name: 'Chef Antonio' },
-      image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400',
+      title: 'Greek Salad',
+      cuisine: 'Greek',
+      difficulty: 'Easy',
+      cookingTime: '15 mins',
+      author: { name: 'Chef Nikos' },
+      image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400',
     },
     {
       id: '10',
-      title: 'Spring Rolls',
-      cuisine: 'Chinese',
-      difficulty: 'Easy',
-      cookingTime: '30 mins',
-      author: { name: 'Chef Li' },
-      image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400',
-    },
-    {
-      id: '11',
-      title: 'Croissant',
-      cuisine: 'French',
-      difficulty: 'Hard',
-      cookingTime: '120 mins',
-      author: { name: 'Chef Pierre' },
-      image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400',
-    },
-    {
-      id: '12',
-      title: 'Guacamole',
-      cuisine: 'Mexican',
-      difficulty: 'Easy',
-      cookingTime: '10 mins',
-      author: { name: 'Chef Carlos' },
-      image: 'https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400',
+      title: 'Fish and Chips',
+      cuisine: 'British',
+      difficulty: 'Medium',
+      cookingTime: '40 mins',
+      author: { name: 'Chef Oliver' },
+      image: 'https://images.unsplash.com/photo-1579208570378-8c970854bc23?w=400',
     },
   ]
 }
 
-/**
- * Author avatar generation
- */
-const getAuthorAvatar = (author) => {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&size=40&background=007bff&color=ffffff`
-}
-
-/**
- * レシピを表示
- */
+// ============================================================================
+// レシピ詳細を表示（将来の実装用プレースホルダー）
+// View recipe details (placeholder for future implementation)
+// ============================================================================
 const viewRecipe = (recipe) => {
   console.log('View recipe:', recipe)
   alert(`Viewing recipe: ${recipe.title}`)
 }
 
-// コンポーネントマウント時にデータ取得
+// ============================================================================
+// BR (E.4): Export - CSVエクスポート機能
+// BR (E.4): Export - CSV Export Feature
+//
+// テーブルに表示されているレシピデータをCSV形式でエクスポートする
+// Exports recipe data displayed in the table to CSV format
+//
+// 実装の参考:
+// - MDN Web Docs - Blob: https://developer.mozilla.org/en-US/docs/Web/API/Blob
+// - MDN Web Docs - URL.createObjectURL: https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
+// - CSV RFC 4180: https://datatracker.ietf.org/doc/html/rfc4180
+// ============================================================================
+const exportToCSV = () => {
+  try {
+    // CSVヘッダー行を作成
+    // Create CSV header row
+    const headers = ['Recipe Name', 'Cuisine', 'Difficulty', 'Author', 'Cooking Time']
+
+    // データ行を作成（各レシピを配列に変換）
+    // Create data rows (convert each recipe to array)
+    const rows = recipes.value.map((recipe) => [
+      recipe.title,
+      recipe.cuisine,
+      recipe.difficulty,
+      recipe.author.name,
+      recipe.cookingTime,
+    ])
+
+    // CSVコンテンツを作成（RFC 4180に準拠）
+    // Create CSV content (compliant with RFC 4180)
+    let csvContent = headers.join(',') + '\n'
+
+    rows.forEach((row) => {
+      // カンマを含む可能性があるフィールドはダブルクォートで囲む
+      // Wrap fields that may contain commas in double quotes
+      const escapedRow = row.map((field) => {
+        if (typeof field === 'string' && field.includes(',')) {
+          return `"${field}"`
+        }
+        return field
+      })
+      csvContent += escapedRow.join(',') + '\n'
+    })
+
+    // BlobオブジェクトとしてCSVを作成
+    // Create CSV as Blob object
+    // Reference: https://developer.mozilla.org/en-US/docs/Web/API/Blob
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+
+    // ダウンロード用のリンクを作成
+    // Create download link
+    // Reference: https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    // ファイル名を設定（現在の日時を含む）
+    // Set filename (including current date)
+    const timestamp = new Date().toISOString().slice(0, 10)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `recipes_${timestamp}.csv`)
+
+    // ダウンロードを実行
+    // Execute download
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    console.log('CSV export completed successfully')
+  } catch (error) {
+    console.error('Error exporting to CSV:', error)
+    alert('Failed to export CSV file. Please try again.')
+  }
+}
+
+// ============================================================================
+// コンポーネントマウント時にデータをロード
+// Load data when component is mounted
+// ============================================================================
 onMounted(() => {
   loadRecipes()
 })
 </script>
 
 <style scoped>
+/* ============================================================================
+   BR (A.2): Responsiveness - レスポンシブデザインのためのスタイル
+   BR (A.2): Responsiveness - Styles for responsive design
+   ============================================================================ */
+
 .recipes-page {
-  min-height: calc(100vh - 56px);
+  min-height: 100vh;
   background-color: #f8f9fa;
 }
 
-.card {
-  border: none;
-  border-radius: 8px;
+/* DataTableのスタイルカスタマイズ / DataTable style customization */
+.modern-table {
+  font-size: 0.95rem;
 }
 
-/* PrimeVue DataTableのカスタムスタイル */
-:deep(.p-datatable) {
-  font-size: 0.9rem;
-}
-
-:deep(.p-datatable-thead > tr > th) {
-  background-color: #007bff;
-  color: white;
+.modern-table :deep(.p-datatable-thead > tr > th) {
+  background-color: #f8f9fa;
+  color: #495057;
   font-weight: 600;
-  padding: 1rem;
+  border-bottom: 2px solid #dee2e6;
 }
 
-:deep(.p-datatable-tbody > tr:hover) {
-  background-color: #f0f8ff;
-}
-
-:deep(.p-paginator) {
-  padding: 1rem;
+.modern-table :deep(.p-datatable-tbody > tr:hover) {
   background-color: #f8f9fa;
 }
 
-:deep(.p-datatable .p-filter-column input),
-:deep(.p-datatable .p-filter-column select) {
-  width: 100%;
+.modern-table :deep(.p-paginator) {
+  background-color: #fff;
+  border-top: 1px solid #dee2e6;
 }
 </style>
