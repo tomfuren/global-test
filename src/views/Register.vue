@@ -1,3 +1,37 @@
+<!--
+  Register Page - User registration interface with Firebase Authentication
+  登録ページ - Firebase Authenticationを使用したユーザー登録インターフェース
+
+  Features / 機能:
+  - Email/Password registration / メールアドレス・パスワード登録
+  - Google OAuth registration / Google OAuth登録
+  - Comprehensive form validation / 包括的なフォームバリデーション
+  - Role selection during registration / 登録時のロール選択
+  - Real-time validation feedback / リアルタイムバリデーションフィードバック
+  - Accessible form design with ARIA attributes / ARIA属性を使用したアクセシブルフォーム設計
+
+  BR (C.1): Authentication - Email/Password Registration
+  BR (C.1): 認証機能 - メールアドレス・パスワード登録
+
+  BR (C.2): Role-based Authentication - Role selection during user registration
+  BR (C.2): ロールベース認証 - ユーザー登録時のロール選択
+  Allows users to select their role (Student Member/Community Administrator) during sign-up
+  ユーザーが登録時にロール（学生メンバー/コミュニティ管理者）を選択可能
+
+  BR (D.1): External Authentication - Google OAuth Integration
+  BR (D.1): 外部認証機能 - Google OAuth統合
+
+  BR (B.1): Validations - Comprehensive form field validation
+  BR (B.1): バリデーション機能 - 包括的なフォームフィールド検証
+  - Name validation (minimum 2 characters) / 名前の検証（最小2文字）
+  - Email format validation / メールアドレス形式の検証
+  - Password strength validation / パスワード強度の検証
+  - Password confirmation matching / パスワード確認の一致検証
+
+  BR (E.3): Accessibility - ARIA labels, roles, and keyboard navigation support
+  BR (E.3): アクセシビリティ - ARIAラベル、ロール、キーボードナビゲーション対応
+-->
+
 <template>
   <div class="register-page bg-light min-vh-100 d-flex align-items-center py-5">
     <div class="container">
@@ -5,16 +39,16 @@
         <div class="col-xl-4 col-lg-5 col-md-7 col-sm-9">
           <div class="card shadow-lg border-0">
             <div class="card-body p-5">
+              <!-- Page Header / ページヘッダー -->
               <div class="text-center mb-4">
                 <h2 class="fw-bold text-primary">Global Plate</h2>
                 <p class="text-muted">Create your account</p>
               </div>
 
               <!--
-                エラー・成功メッセージ
-                Error/Success Message
-                BR (E.3): Accessibility - aria-live="polite"でスクリーンリーダーに動的な変更を通知
-                BR (E.3): Accessibility - Notify screen readers of dynamic changes with aria-live="polite"
+                Error/Success Message Display / エラー・成功メッセージ表示
+                BR (E.3): Accessibility - aria-live="polite" notifies screen readers of dynamic changes
+                BR (E.3): アクセシビリティ - aria-live="polite"でスクリーンリーダーに動的な変更を通知
               -->
               <div
                 v-if="message"
@@ -23,18 +57,22 @@
                 role="alert"
                 aria-live="polite"
               >
-                <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
-                <!-- BR (E.3): Accessibility - Hide decorative icons from screen readers with aria-hidden="true" -->
+                <!--
+                  BR (E.3): Accessibility - aria-hidden="true" hides decorative icons from screen readers
+                  BR (E.3): アクセシビリティ - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す
+                -->
                 <i :class="messageIcon" class="me-2" aria-hidden="true"></i>
                 {{ message }}
               </div>
 
+              <!-- Registration Form / 登録フォーム -->
               <form @submit.prevent="register">
+                <!--
+                  Name Fields / 名前フィールド
+                  BR (B.1): Validations - Name validation (minimum 2 characters)
+                  BR (B.1): バリデーション機能 - 名前の検証（最小2文字）
+                -->
                 <div class="row">
-                  <!--
-                    BR (B.1): Validations - 名前の検証（最小2文字）
-                    BR (B.1): Validations - Name validation (minimum 2 characters)
-                  -->
                   <div class="col-md-6 mb-3">
                     <label for="firstName" class="form-label">First Name</label>
                     <input
@@ -49,8 +87,8 @@
                       @input="validateFirstName(false)"
                     />
                     <!--
-                      BR (E.3): Accessibility - role="alert"でエラーメッセージをスクリーンリーダーに即座に通知
-                      BR (E.3): Accessibility - Notify screen readers of error messages immediately with role="alert"
+                      BR (E.3): Accessibility - role="alert" immediately notifies screen readers of error messages
+                      BR (E.3): アクセシビリティ - role="alert"でエラーメッセージをスクリーンリーダーに即座に通知
                     -->
                     <div v-if="errors.firstName" class="invalid-feedback" role="alert">
                       {{ errors.firstName }}
@@ -69,7 +107,7 @@
                       @blur="validateLastName(true)"
                       @input="validateLastName(false)"
                     />
-                    <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                    <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                     <div v-if="errors.lastName" class="invalid-feedback" role="alert">
                       {{ errors.lastName }}
                     </div>
@@ -77,8 +115,9 @@
                 </div>
 
                 <!--
-                  BR (B.1): Validations - メールアドレス形式の検証
+                  Email Field / メールアドレスフィールド
                   BR (B.1): Validations - Email address format validation
+                  BR (B.1): バリデーション機能 - メールアドレス形式の検証
                 -->
                 <div class="mb-3">
                   <label for="email" class="form-label">Email Address</label>
@@ -93,12 +132,13 @@
                     @blur="validateEmail(true)"
                     @input="validateEmail(false)"
                   />
-                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                   <div v-if="errors.email" class="invalid-feedback" role="alert">
                     {{ errors.email }}
                   </div>
                 </div>
 
+                <!-- Country Selection / 国選択 -->
                 <div class="mb-3">
                   <label for="country" class="form-label">Country</label>
                   <select
@@ -121,18 +161,24 @@
                     <option value="malaysia">Malaysia</option>
                     <option value="other">Other</option>
                   </select>
-                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                   <div v-if="errors.country" class="invalid-feedback" role="alert">
                     {{ errors.country }}
                   </div>
                 </div>
 
                 <!--
-                  BR (C.2): Role-based authentication - 役割選択フィールド
+                  BR (C.2): Role-based Authentication - Role selection field
+                  BR (C.2): ロールベース認証 - 役割選択フィールド
+
+                  Allows users to select their role (user/admin) during registration
                   ユーザー登録時に役割（user/admin）を選択可能にする
 
-                  BR (C.2): Role-based authentication - Role selection field
-                  Allow users to select their role (user/admin) during registration
+                  Role Options / ロールオプション:
+                  - Student Member (user): Access recipes, events, and groups
+                    学生メンバー（user）: レシピ、イベント、グループへのアクセス
+                  - Community Administrator (admin): Manage content and users
+                    コミュニティ管理者（admin）: コンテンツとユーザーの管理
                 -->
                 <div class="mb-3">
                   <label for="role" class="form-label">Account Type</label>
@@ -148,7 +194,7 @@
                     <option value="user">Student Member</option>
                     <option value="admin">Community Administrator</option>
                   </select>
-                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                   <div v-if="errors.role" class="invalid-feedback" role="alert">
                     {{ errors.role }}
                   </div>
@@ -160,6 +206,7 @@
                   </div>
                 </div>
 
+                <!-- University/School Field / 大学・学校フィールド -->
                 <div class="mb-3">
                   <label for="university" class="form-label">University/School</label>
                   <input
@@ -173,18 +220,22 @@
                     @blur="validateUniversity(true)"
                     @input="validateUniversity(false)"
                   />
-                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                   <div v-if="errors.university" class="invalid-feedback" role="alert">
                     {{ errors.university }}
                   </div>
                 </div>
 
                 <!--
-                  BR (B.1): Validations - パスワード強度の検証
-                  最低8文字、大文字・小文字・数字を含む
-
+                  Password Field / パスワードフィールド
                   BR (B.1): Validations - Password strength validation
-                  Minimum 8 characters, including uppercase, lowercase, and numbers
+                  BR (B.1): バリデーション機能 - パスワード強度の検証
+
+                  Requirements / 要件:
+                  - Minimum 8 characters / 最低8文字
+                  - At least one uppercase letter / 大文字を1つ以上含む
+                  - At least one lowercase letter / 小文字を1つ以上含む
+                  - At least one number / 数字を1つ以上含む
                 -->
                 <div class="mb-3">
                   <label for="password" class="form-label">Password</label>
@@ -199,15 +250,19 @@
                     @blur="validatePassword(true)"
                     @input="validatePassword(false)"
                   />
-                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                   <div v-if="errors.password" class="invalid-feedback" role="alert">
                     {{ errors.password }}
                   </div>
                 </div>
 
                 <!--
-                  BR (B.1): Validations - パスワード確認の検証
+                  Password Confirmation Field / パスワード確認フィールド
                   BR (B.1): Validations - Password confirmation validation
+                  BR (B.1): バリデーション機能 - パスワード確認の検証
+
+                  Ensures password and confirmation match
+                  パスワードと確認が一致することを確認
                 -->
                 <div class="mb-3">
                   <label for="confirmPassword" class="form-label">Confirm Password</label>
@@ -222,12 +277,13 @@
                     @blur="validateConfirmPassword(true)"
                     @input="validateConfirmPassword(false)"
                   />
-                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                   <div v-if="errors.confirmPassword" class="invalid-feedback" role="alert">
                     {{ errors.confirmPassword }}
                   </div>
                 </div>
 
+                <!-- Terms and Conditions Checkbox / 利用規約チェックボックス -->
                 <div class="mb-3 form-check">
                   <input
                     type="checkbox"
@@ -247,12 +303,13 @@
                       >Privacy Policy</router-link
                     >
                   </label>
-                  <!-- BR (E.3): Accessibility - role="alert"でエラーメッセージを通知 -->
+                  <!-- BR (E.3): Accessibility - Error message notification / エラーメッセージを通知 -->
                   <div v-if="errors.agree" class="invalid-feedback" role="alert">
                     {{ errors.agree }}
                   </div>
                 </div>
 
+                <!-- Submit Button / 送信ボタン -->
                 <div class="d-grid mb-3">
                   <button type="submit" class="btn btn-primary btn-lg" :disabled="isLoading">
                     <span
@@ -268,11 +325,18 @@
               <hr class="my-4" />
 
               <!--
-                BR (D.1): External Authentication - Google認証
+                BR (D.1): External Authentication - Google OAuth Registration
+                BR (D.1): 外部認証機能 - Google OAuth登録
+
+                Google account registration functionality
                 Googleアカウントでの新規登録機能
 
-                BR (D.1): External Authentication - Google Authentication
-                Sign up functionality using Google account
+                Process Flow / 処理フロー:
+                1. Display Google authentication popup / Google認証ポップアップを表示
+                2. User selects Google account / ユーザーがGoogleアカウントを選択
+                3. Check if user profile exists in Firestore / Firestoreでユーザープロフィールの存在確認
+                4. If first-time: Save to Firestore with default role / 初回の場合: デフォルトロールでFirestoreに保存
+                5. If existing: Redirect to login page / 既存の場合: ログインページへリダイレクト
               -->
               <div class="d-grid mb-3">
                 <button
@@ -280,12 +344,16 @@
                   class="btn btn-outline-danger btn-lg"
                   :disabled="isLoading"
                 >
-                  <!-- BR (E.3): Accessibility - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す -->
+                  <!--
+                    BR (E.3): Accessibility - aria-hidden="true" hides decorative icons from screen readers
+                    BR (E.3): アクセシビリティ - aria-hidden="true"で装飾的なアイコンをスクリーンリーダーから隠す
+                  -->
                   <i class="fab fa-google me-2" aria-hidden="true"></i>
                   Sign up with Google
                 </button>
               </div>
 
+              <!-- Sign In Link / サインインリンク -->
               <div class="text-center">
                 <p class="mb-0">
                   Already have an account?<br />
@@ -303,9 +371,12 @@
 </template>
 
 <script setup>
+// ============================================================================
+// Imports / インポート
+// ============================================================================
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-// BR (C.1) & BR (D.1): Firebase Authentication のインポート
+// BR (C.1) & BR (D.1): Firebase Authentication imports / Firebase Authentication のインポート
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -316,51 +387,99 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { db } from '@/firebase/init'
 
+// ============================================================================
+// State Management / 状態管理
+// ============================================================================
 const router = useRouter()
-// BR (C.1): Firebase Authenticationインスタンスを取得
+// BR (C.1): Get Firebase Authentication instance / Firebase Authenticationインスタンスを取得
 const auth = getAuth()
 
-// Form data
+// Form Data / フォームデータ
+// Stores all user input data
+// すべてのユーザー入力データを保存
 const formData = ref({
   firstName: '',
   lastName: '',
   email: '',
   country: '',
-  role: '', // BR (C.2): Role-based authentication
+  role: '', // BR (C.2): Role-based authentication / ロールベース認証
   university: '',
   password: '',
   confirmPassword: '',
   agree: false,
 })
 
-// Validation errors
+// Validation Errors / バリデーションエラー
+// BR (B.1): Validation error messages for each field
+// BR (B.1): 各フィールドのバリデーションエラーメッセージ
 const errors = ref({
   firstName: null,
   lastName: null,
   email: null,
   country: null,
-  role: null, // BR (C.2): Role-based authentication
+  role: null, // BR (C.2): Role-based authentication / ロールベース認証
   university: null,
   password: null,
   confirmPassword: null,
   agree: null,
 })
 
-// UI state
-const isLoading = ref(false)
-const message = ref('')
-const messageType = ref('')
+// UI State / UI状態
+const isLoading = ref(false) // Loading state / ローディング状態
+const message = ref('') // Success/Error message / 成功/エラーメッセージ
+const messageType = ref('') // Message type / メッセージタイプ
 
-// Computed
+// ============================================================================
+// Computed Properties / 算出プロパティ
+// ============================================================================
+
+/**
+ * Message CSS class based on message type
+ * メッセージタイプに基づくCSSクラス
+ */
 const messageClass = computed(() => {
   return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
 })
 
+/**
+ * Message icon based on message type
+ * メッセージタイプに基づくアイコン
+ */
 const messageIcon = computed(() => {
   return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
 })
 
-// Helper functions
+/**
+ * Form validation status
+ * フォームバリデーション状態
+ *
+ * Returns true if all fields are valid and filled
+ * すべてのフィールドが有効で入力されている場合はtrueを返す
+ */
+const isFormValid = computed(() => {
+  return (
+    Object.values(errors.value).every((error) => error === null) &&
+    formData.value.firstName &&
+    formData.value.lastName &&
+    formData.value.email &&
+    formData.value.country &&
+    formData.value.role && // BR (C.2): Role-based authentication / ロールベース認証
+    formData.value.university &&
+    formData.value.password &&
+    formData.value.confirmPassword &&
+    formData.value.agree
+  )
+})
+
+// ============================================================================
+// Helper Functions / ヘルパー関数
+// ============================================================================
+
+/**
+ * Display message function / メッセージを表示する関数
+ * @param {string} msg - Message to display / 表示するメッセージ
+ * @param {string} type - Message type ('success' or 'error') / メッセージタイプ ('success' or 'error')
+ */
 const showMessage = (msg, type = 'success') => {
   message.value = msg
   messageType.value = type
@@ -369,120 +488,12 @@ const showMessage = (msg, type = 'success') => {
   }, 5000)
 }
 
-// Validation functions
-// BR (B.1): Validations - 各フィールドのバリデーション関数
-const validateFirstName = (blur) => {
-  if (!formData.value.firstName.trim()) {
-    if (blur) errors.value.firstName = 'First name is required'
-  } else if (formData.value.firstName.trim().length < 2) {
-    if (blur) errors.value.firstName = 'First name must be at least 2 characters'
-  } else {
-    errors.value.firstName = null
-  }
-}
-
-const validateLastName = (blur) => {
-  if (!formData.value.lastName.trim()) {
-    if (blur) errors.value.lastName = 'Last name is required'
-  } else if (formData.value.lastName.trim().length < 2) {
-    if (blur) errors.value.lastName = 'Last name must be at least 2 characters'
-  } else {
-    errors.value.lastName = null
-  }
-}
-
-const validateEmail = (blur) => {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-  if (!formData.value.email.trim()) {
-    if (blur) errors.value.email = 'Email address is required'
-  } else if (!emailPattern.test(formData.value.email.trim())) {
-    if (blur) errors.value.email = 'Please enter a valid email address'
-  } else {
-    errors.value.email = null
-  }
-}
-
-const validateCountry = (blur) => {
-  if (!formData.value.country || formData.value.country === '') {
-    if (blur) errors.value.country = 'Please select your country'
-  } else {
-    errors.value.country = null
-  }
-}
-
-// BR (C.2): Role-based authentication validation
-const validateRole = (blur) => {
-  if (!formData.value.role || formData.value.role === '') {
-    if (blur) errors.value.role = 'Please select account type'
-  } else {
-    errors.value.role = null
-  }
-}
-
-const validateUniversity = (blur) => {
-  if (!formData.value.university.trim()) {
-    if (blur) errors.value.university = 'University/School is required'
-  } else if (formData.value.university.trim().length < 3) {
-    if (blur) errors.value.university = 'University name must be at least 3 characters'
-  } else {
-    errors.value.university = null
-  }
-}
-
-const validatePassword = (blur) => {
-  const password = formData.value.password
-
-  if (!password) {
-    if (blur) errors.value.password = 'Password is required'
-  } else if (password.length < 8) {
-    if (blur) errors.value.password = 'Password must be at least 8 characters'
-  } else if (!/(?=.*[a-z])/.test(password)) {
-    if (blur) errors.value.password = 'Password must contain at least one lowercase letter'
-  } else if (!/(?=.*[A-Z])/.test(password)) {
-    if (blur) errors.value.password = 'Password must contain at least one uppercase letter'
-  } else if (!/(?=.*\d)/.test(password)) {
-    if (blur) errors.value.password = 'Password must contain at least one number'
-  } else {
-    errors.value.password = null
-  }
-}
-
-const validateConfirmPassword = (blur) => {
-  if (!formData.value.confirmPassword) {
-    if (blur) errors.value.confirmPassword = 'Please confirm your password'
-  } else if (formData.value.password !== formData.value.confirmPassword) {
-    if (blur) errors.value.confirmPassword = 'Passwords do not match'
-  } else {
-    errors.value.confirmPassword = null
-  }
-}
-
-const validateAgree = (blur) => {
-  if (!formData.value.agree) {
-    if (blur) errors.value.agree = 'You must agree to the Terms of Service and Privacy Policy'
-  } else {
-    errors.value.agree = null
-  }
-}
-
-// Form validation
-const isFormValid = computed(() => {
-  return (
-    Object.values(errors.value).every((error) => error === null) &&
-    formData.value.firstName &&
-    formData.value.lastName &&
-    formData.value.email &&
-    formData.value.country &&
-    formData.value.role && // BR (C.2): Role-based authentication
-    formData.value.university &&
-    formData.value.password &&
-    formData.value.confirmPassword &&
-    formData.value.agree
-  )
-})
-
-// Firebase error handling
+/**
+ * Convert Firebase error codes to user-friendly error messages
+ * Firebaseエラーコードをユーザーフレンドリーなエラーメッセージに変換
+ * @param {string} errorCode - Firebase error code / Firebaseエラーコード
+ * @returns {string} User-friendly error message / ユーザーフレンドリーなエラーメッセージ
+ */
 const getErrorMessage = (errorCode) => {
   switch (errorCode) {
     case 'auth/email-already-in-use':
@@ -506,20 +517,177 @@ const getErrorMessage = (errorCode) => {
   }
 }
 
+// ============================================================================
+// Validation Functions / バリデーション関数
+// BR (B.1): Validations - Validation functions for each field
+// BR (B.1): バリデーション機能 - 各フィールドのバリデーション関数
+// ============================================================================
+
+/**
+ * First name validation / 名のバリデーション
+ * Minimum 2 characters required / 最小2文字が必要
+ */
+const validateFirstName = (blur) => {
+  if (!formData.value.firstName.trim()) {
+    if (blur) errors.value.firstName = 'First name is required'
+  } else if (formData.value.firstName.trim().length < 2) {
+    if (blur) errors.value.firstName = 'First name must be at least 2 characters'
+  } else {
+    errors.value.firstName = null
+  }
+}
+
+/**
+ * Last name validation / 姓のバリデーション
+ * Minimum 2 characters required / 最小2文字が必要
+ */
+const validateLastName = (blur) => {
+  if (!formData.value.lastName.trim()) {
+    if (blur) errors.value.lastName = 'Last name is required'
+  } else if (formData.value.lastName.trim().length < 2) {
+    if (blur) errors.value.lastName = 'Last name must be at least 2 characters'
+  } else {
+    errors.value.lastName = null
+  }
+}
+
+/**
+ * Email validation / メールアドレスのバリデーション
+ * Validates email format using regex / 正規表現を使用してメール形式を検証
+ */
+const validateEmail = (blur) => {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  if (!formData.value.email.trim()) {
+    if (blur) errors.value.email = 'Email address is required'
+  } else if (!emailPattern.test(formData.value.email.trim())) {
+    if (blur) errors.value.email = 'Please enter a valid email address'
+  } else {
+    errors.value.email = null
+  }
+}
+
+/**
+ * Country validation / 国のバリデーション
+ */
+const validateCountry = (blur) => {
+  if (!formData.value.country || formData.value.country === '') {
+    if (blur) errors.value.country = 'Please select your country'
+  } else {
+    errors.value.country = null
+  }
+}
+
+/**
+ * BR (C.2): Role validation / ロールのバリデーション
+ * Ensures user selects an account type
+ * ユーザーがアカウントタイプを選択することを確認
+ */
+const validateRole = (blur) => {
+  if (!formData.value.role || formData.value.role === '') {
+    if (blur) errors.value.role = 'Please select account type'
+  } else {
+    errors.value.role = null
+  }
+}
+
+/**
+ * University validation / 大学のバリデーション
+ * Minimum 3 characters required / 最小3文字が必要
+ */
+const validateUniversity = (blur) => {
+  if (!formData.value.university.trim()) {
+    if (blur) errors.value.university = 'University/School is required'
+  } else if (formData.value.university.trim().length < 3) {
+    if (blur) errors.value.university = 'University name must be at least 3 characters'
+  } else {
+    errors.value.university = null
+  }
+}
+
+/**
+ * Password strength validation / パスワード強度のバリデーション
+ *
+ * Requirements / 要件:
+ * - Minimum 8 characters / 最低8文字
+ * - At least one lowercase letter / 小文字を1つ以上
+ * - At least one uppercase letter / 大文字を1つ以上
+ * - At least one number / 数字を1つ以上
+ */
+const validatePassword = (blur) => {
+  const password = formData.value.password
+
+  if (!password) {
+    if (blur) errors.value.password = 'Password is required'
+  } else if (password.length < 8) {
+    if (blur) errors.value.password = 'Password must be at least 8 characters'
+  } else if (!/(?=.*[a-z])/.test(password)) {
+    if (blur) errors.value.password = 'Password must contain at least one lowercase letter'
+  } else if (!/(?=.*[A-Z])/.test(password)) {
+    if (blur) errors.value.password = 'Password must contain at least one uppercase letter'
+  } else if (!/(?=.*\d)/.test(password)) {
+    if (blur) errors.value.password = 'Password must contain at least one number'
+  } else {
+    errors.value.password = null
+  }
+}
+
+/**
+ * Password confirmation validation / パスワード確認のバリデーション
+ * Ensures password and confirmation match / パスワードと確認が一致することを確認
+ */
+const validateConfirmPassword = (blur) => {
+  if (!formData.value.confirmPassword) {
+    if (blur) errors.value.confirmPassword = 'Please confirm your password'
+  } else if (formData.value.password !== formData.value.confirmPassword) {
+    if (blur) errors.value.confirmPassword = 'Passwords do not match'
+  } else {
+    errors.value.confirmPassword = null
+  }
+}
+
+/**
+ * Terms agreement validation / 利用規約同意のバリデーション
+ */
+const validateAgree = (blur) => {
+  if (!formData.value.agree) {
+    if (blur) errors.value.agree = 'You must agree to the Terms of Service and Privacy Policy'
+  } else {
+    errors.value.agree = null
+  }
+}
+
+// ============================================================================
+// Registration Functions / 登録関数
+// ============================================================================
+
 /**
  * BR (C.1): Authentication - Email/Password Registration
- * BR (C.2): Role-based authentication - ユーザー登録時に役割を設定
+ * BR (C.1): 認証機能 - Email/Password登録
+ *
+ * BR (C.2): Role-based Authentication - Sets user role during registration
+ * BR (C.2): ロールベース認証 - ユーザー登録時に役割を設定
+ *
+ * Email/Password user registration process
+ * Saves user profile information (including role) to Firestore
  *
  * Email/Passwordでの新規ユーザー登録処理
  * Firestoreにユーザープロフィール情報（役割を含む）を保存
+ *
+ * Process / 処理:
+ * 1. Validate all form fields / すべてのフォームフィールドを検証
+ * 2. Create user with Firebase Authentication / Firebase Authenticationでユーザーを作成
+ * 3. Save user profile to Firestore with selected role / 選択されたロールでユーザープロフィールをFirestoreに保存
+ * 4. Update Firebase Auth display name / Firebase Authの表示名を更新
+ * 5. Redirect to login page / ログインページへリダイレクト
  */
 const register = async () => {
-  // Validate all fields
+  // Validate all fields / すべてのフィールドを検証
   validateFirstName(true)
   validateLastName(true)
   validateEmail(true)
   validateCountry(true)
-  validateRole(true) // BR (C.2): Role-based authentication
+  validateRole(true) // BR (C.2): Role-based authentication / ロールベース認証
   validateUniversity(true)
   validatePassword(true)
   validateConfirmPassword(true)
@@ -532,7 +700,7 @@ const register = async () => {
   isLoading.value = true
 
   try {
-    // Firebase Authentication でユーザーを作成
+    // Create user with Firebase Authentication / Firebase Authentication でユーザーを作成
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       formData.value.email,
@@ -543,8 +711,8 @@ const register = async () => {
     console.log('Firebase Register Successful!')
     console.log('New User:', user)
 
+    // BR (C.2): Save user profile information to Firestore (including role)
     // BR (C.2): Firestoreにユーザープロフィール情報を保存（役割を含む）
-    // Save user profile information to Firestore (including role)
     const userProfile = {
       uid: user.uid,
       firstName: formData.value.firstName,
@@ -552,17 +720,17 @@ const register = async () => {
       displayName: `${formData.value.firstName} ${formData.value.lastName}`,
       email: formData.value.email,
       country: formData.value.country,
-      role: formData.value.role, // BR (C.2): 役割を保存
+      role: formData.value.role, // BR (C.2): Save selected role / 役割を保存
       university: formData.value.university,
-      provider: 'email', // 認証プロバイダー
+      provider: 'email', // Authentication provider / 認証プロバイダー
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
 
-    // Firestoreにユーザードキュメントを作成
+    // Create user document in Firestore / Firestoreにユーザードキュメントを作成
     await setDoc(doc(db, 'users', user.uid), userProfile)
 
-    // Firebase Authのdisplay nameを更新
+    // Update Firebase Auth display name / Firebase Authの表示名を更新
     await updateProfile(user, {
       displayName: userProfile.displayName,
     })
@@ -571,7 +739,7 @@ const register = async () => {
 
     showMessage('Registration successful!', 'success')
 
-    // ログインページにリダイレクト
+    // Redirect to login page / ログインページにリダイレクト
     setTimeout(() => {
       router.push({
         path: '/login',
@@ -587,28 +755,32 @@ const register = async () => {
 }
 
 /**
- * BR (D.1): External Authentication - Google Authentication Registration
+ * BR (D.1): External Authentication - Google OAuth Registration
+ * BR (D.1): 外部認証機能 - Google OAuth登録
+ *
+ * Google account registration functionality
  * Googleアカウントで新規登録
  *
- * 処理フロー:
- * 1. GoogleAuthProviderでポップアップを表示
- * 2. ユーザーがGoogleアカウントを選択
- * 3. Firestoreでユーザープロフィールの存在確認
- * 4. 初回の場合はFirestoreに保存、既存の場合はログインページへリダイレクト
+ * Process Flow / 処理フロー:
+ * 1. Create GoogleAuthProvider and display popup / GoogleAuthProviderでポップアップを表示
+ * 2. User selects Google account / ユーザーがGoogleアカウントを選択
+ * 3. Check if user profile exists in Firestore / Firestoreでユーザープロフィールの存在確認
+ * 4. If first-time: Save to Firestore with default role 'user' / 初回の場合: デフォルトロール'user'でFirestoreに保存
+ * 5. If existing: Redirect to login page / 既存の場合: ログインページへリダイレクト
  */
 const handleGoogleRegister = async () => {
   isLoading.value = true
 
   try {
-    // GoogleAuthProvider インスタンスを作成
+    // Create GoogleAuthProvider instance / GoogleAuthProvider インスタンスを作成
     const provider = new GoogleAuthProvider()
 
-    // アカウント選択画面を毎回表示
+    // Display account selection screen every time / アカウント選択画面を毎回表示
     provider.setCustomParameters({
       prompt: 'select_account',
     })
 
-    // Googleログインポップアップを表示
+    // Display Google login popup / Googleログインポップアップを表示
     const result = await signInWithPopup(auth, provider)
     const user = result.user
 
@@ -616,13 +788,15 @@ const handleGoogleRegister = async () => {
     console.log('User UID:', user.uid)
     console.log('User Email:', user.email)
 
-    // BR (C.2): Firestoreにユーザープロフィールが存在するか確認
+    // BR (C.2): Check if user profile exists in Firestore / Firestoreにユーザープロフィールが存在するか確認
     const userDocRef = doc(db, 'users', user.uid)
     const userDoc = await getDoc(userDocRef)
 
     console.log('User document exists:', userDoc.exists())
 
     if (!userDoc.exists()) {
+      // For first-time registration, save user information to Firestore
+      // Set default role as 'user'
       // 初回登録の場合、Firestoreにユーザー情報を保存
       // デフォルトで 'user' 役割を設定
       const userData = {
@@ -631,7 +805,7 @@ const handleGoogleRegister = async () => {
         displayName: user.displayName || 'Anonymous User',
         photoURL: user.photoURL || null,
         provider: 'google',
-        role: 'user', // BR (C.2): デフォルトの役割
+        role: 'user', // BR (C.2): Default role / デフォルトの役割
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -643,12 +817,12 @@ const handleGoogleRegister = async () => {
 
       showMessage('Welcome! Account created with Google', 'success')
 
-      // ダッシュボードにリダイレクト
+      // Redirect to dashboard / ダッシュボードにリダイレクト
       setTimeout(() => {
         router.push('/dashboard')
       }, 1000)
     } else {
-      // 既にアカウントが存在する場合
+      // If account already exists / 既にアカウントが存在する場合
       console.log('User already exists, redirecting to login')
       showMessage('Account already exists. Redirecting to login...', 'error')
 
@@ -657,26 +831,26 @@ const handleGoogleRegister = async () => {
       }, 1500)
     }
   } catch (error) {
-    // 詳細なエラー情報をコンソールに出力
+    // Output detailed error information to console / 詳細なエラー情報をコンソールに出力
     console.error('Google registration error - Full error:', error)
     console.error('Error code:', error.code)
     console.error('Error message:', error.message)
 
-    // ユーザーがポップアップを閉じた場合
+    // User closed the popup / ユーザーがポップアップを閉じた場合
     if (error.code === 'auth/popup-closed-by-user') {
       showMessage('Sign-up cancelled', 'error')
       isLoading.value = false
       return
     }
 
-    // ユーザーがキャンセルした場合
+    // User cancelled / ユーザーがキャンセルした場合
     if (error.code === 'auth/cancelled-popup-request') {
       showMessage('Sign-up cancelled', 'error')
       isLoading.value = false
       return
     }
 
-    // その他のエラー
+    // Other errors / その他のエラー
     const errorMessage = getErrorMessage(error.code) || error.message
     showMessage(`Error: ${errorMessage}`, 'error')
   } finally {
@@ -686,6 +860,7 @@ const handleGoogleRegister = async () => {
 </script>
 
 <style scoped>
+/* Overall page layout / ページ全体のレイアウト */
 .register-page {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
@@ -694,12 +869,14 @@ const handleGoogleRegister = async () => {
   border-radius: 15px;
 }
 
+/* Form control focus styling / フォームコントロールのフォーカススタイリング */
 .form-control:focus,
 .form-select:focus {
   border-color: #007bff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
+/* Primary button styling / プライマリボタンのスタイリング */
 .btn-primary {
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   border: none;
@@ -714,16 +891,17 @@ const handleGoogleRegister = async () => {
   border-radius: 10px;
 }
 
+/* Error message display / エラーメッセージ表示 */
 .invalid-feedback {
   display: block;
 }
 
 /*
-  BR (E.3): Accessibility - フォーカス時の視覚的フィードバック強化
-  キーボード操作時にフォーカスが明確に見えるようにアウトラインを追加
-
   BR (E.3): Accessibility - Enhanced visual feedback on focus
+  BR (E.3): アクセシビリティ - フォーカス時の視覚的フィードバック強化
+
   Add outline to make focus clearly visible during keyboard navigation
+  キーボード操作時にフォーカスが明確に見えるようにアウトラインを追加
 */
 .form-control:focus,
 .form-select:focus,

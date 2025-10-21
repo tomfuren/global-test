@@ -1,11 +1,38 @@
+// =============================================================================
+// Firebase Cloud Functions - Backend API Services
+// Firebase Cloud Functions - バックエンドAPIサービス
+//
+// This file contains all Firebase Cloud Functions for the Global Plate application,
+// including email services, statistics collection, and bulk email functionality.
+// このファイルには、Global Plateアプリケーションの全Firebase Cloud Functionsが含まれ、
+// メールサービス、統計収集、一括メール送信機能を提供します。
+//
+// Dependencies / 依存関係:
+// - firebase-functions/v2: Cloud Functions 2nd generation runtime
+// - firebase-admin: Firebase Admin SDK for Firestore access
+// - @sendgrid/mail: SendGrid email delivery service
+//
+// Environment Variables Required / 必要な環境変数:
+// - SENDGRID_API_KEY: SendGrid API authentication key
+// =============================================================================
+
 const { onRequest } = require('firebase-functions/v2/https')
 const admin = require('firebase-admin')
 const sgMail = require('@sendgrid/mail')
 
+// =============================================================================
+// Firebase Admin Initialization
 // Firebase Admin初期化
+// =============================================================================
 admin.initializeApp()
 
-// SendGrid API Key設定 - 環境変数から取得
+// =============================================================================
+// SendGrid Configuration
+// SendGrid設定
+//
+// Loads SendGrid API key from environment variables and initializes the client.
+// 環境変数からSendGrid APIキーを読み込み、クライアントを初期化します。
+// =============================================================================
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY
 
 console.log('=== SendGrid Configuration ===')
@@ -20,15 +47,29 @@ if (SENDGRID_API_KEY) {
 
 // =============================================================================
 // BR (D.2): Email - SendGrid API Integration (2nd Gen)
+// BR (D.2): メール送信 - SendGrid API統合 (第2世代)
+//
+// Individual Email Sending Function
+// 個別メール送信機能
+//
+// Features / 機能:
+// - Single recipient email delivery / 単一受信者へのメール配信
+// - HTML and plain text support / HTMLおよびプレーンテキスト対応
+// - File attachment capability / ファイル添付機能
+// - Error handling with detailed logging / 詳細なログ記録付きエラーハンドリング
+//
+// Request Body / リクエストボディ:
+// - to: Recipient email address / 受信者メールアドレス
+// - subject: Email subject line / メール件名
+// - text: Plain text content / プレーンテキストコンテンツ
+// - html: HTML content (optional) / HTMLコンテンツ (オプション)
+// - attachment: File attachment object (optional) / ファイル添付オブジェクト (オプション)
 // =============================================================================
-
-/**
- * メール送信機能
- */
 exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
   console.log('=== sendEmail function called ===')
   console.log('Method:', req.method)
 
+  // Validate HTTP method / HTTPメソッドの検証
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
@@ -37,9 +78,11 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
   }
 
   try {
+    // Extract request parameters / リクエストパラメータの取得
     const { to, subject, text, html, attachment } = req.body
     console.log('Email request:', { to, subject })
 
+    // Validate required fields / 必須フィールドの検証
     if (!to || !subject || !text) {
       console.error('Missing required fields')
       return res.status(400).json({
@@ -48,6 +91,7 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
       })
     }
 
+    // Verify SendGrid configuration / SendGrid設定の確認
     if (!SENDGRID_API_KEY) {
       console.error('SendGrid API Key is not configured')
       return res.status(500).json({
@@ -56,6 +100,7 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
       })
     }
 
+    // Construct email message / メールメッセージの構築
     const msg = {
       to: to,
       from: {
@@ -67,6 +112,7 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
       html: html || text,
     }
 
+    // Add attachment if provided / 添付ファイルが提供されている場合は追加
     if (attachment && attachment.content && attachment.filename) {
       msg.attachments = [
         {
@@ -79,10 +125,12 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
       console.log('Attachment added:', attachment.filename)
     }
 
+    // Send email via SendGrid / SendGrid経由でメール送信
     console.log('Sending email via SendGrid...')
     await sgMail.send(msg)
     console.log('Email sent successfully!')
 
+    // Return success response / 成功レスポンスを返す
     return res.status(200).json({
       success: true,
       message: 'Email sent successfully',
@@ -90,6 +138,7 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
       subject: subject,
     })
   } catch (error) {
+    // Error handling with detailed logging / 詳細なログ記録付きエラーハンドリング
     console.error('=== SendGrid Error ===')
     console.error('Error name:', error.name)
     console.error('Error message:', error.message)
@@ -113,40 +162,41 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
 })
 
 // =============================================================================
-// BR (E.1): Cloud Functions - Firestore データカウント機能 (2nd Gen)
+// BR (E.1): Cloud Functions - Firestore Data Count Functionality (2nd Gen)
+// BR (E.1): Cloud Functions - Firestoreデータカウント機能 (第2世代)
+//
+// Recipe Count Function
+// レシピ数カウント機能
+//
+// Features / 機能:
+// - Counts total number of recipes in Firestore / Firestoreのレシピ総数をカウント
+// - CORS enabled for external access / 外部アクセス用のCORS対応
+// - Simple HTTP endpoint / シンプルなHTTPエンドポイント
+//
+// Response / レスポンス:
+// - success: Operation status / 操作ステータス
+// - count: Total number of recipes / レシピの総数
+// - message: Success message / 成功メッセージ
 // =============================================================================
-
-/**
- * レシピの総数をカウントする機能
- *
- * 機能概要:
- * - Firestoreの'recipes'コレクション内のドキュメント数をカウント
- * - HTTPリクエストで呼び出し可能
- * - CORS対応で外部からのアクセスを許可
- */
 exports.countRecipes = onRequest({ cors: true }, async (req, res) => {
-  console.log('=== countRecipes function called ===')
-
   try {
-    // Firestoreから'recipes'コレクションを取得
+    // Get 'recipes' collection from Firestore / Firestoreから'recipes'コレクションを取得
     const recipesCollection = admin.firestore().collection('recipes')
 
-    // コレクション内の全ドキュメントを取得
+    // Retrieve all documents in collection / コレクション内の全ドキュメントを取得
     const snapshot = await recipesCollection.get()
 
-    // ドキュメント数をカウント
+    // Count documents / ドキュメント数をカウント
     const count = snapshot.size
 
-    console.log(`Total recipes count: ${count}`)
-
-    // 成功レスポンスを返す
+    // Return success response / 成功レスポンスを返す
     return res.status(200).json({
       success: true,
       count: count,
       message: 'Successfully counted recipes',
     })
   } catch (error) {
-    // エラーハンドリング
+    // Error handling / エラーハンドリング
     console.error('Error counting recipes:', error)
     return res.status(500).json({
       success: false,
@@ -155,25 +205,32 @@ exports.countRecipes = onRequest({ cors: true }, async (req, res) => {
   }
 })
 
-/**
- * ユーザーの総数をカウントする機能
- *
- * 機能概要:
- * - Firestoreの'users'コレクション内のドキュメント数をカウント
- * - ロール別（admin/user）の内訳も提供
- */
+// =============================================================================
+// User Count Function with Role Breakdown
+// ロール別ユーザー数カウント機能
+//
+// Features / 機能:
+// - Counts total number of users / ユーザーの総数をカウント
+// - Provides breakdown by role (admin/student) / ロール別（管理者/学生）の内訳を提供
+// - Efficient single-pass counting / 効率的な単一パス集計
+//
+// Response / レスポンス:
+// - totalUsers: Total user count / 総ユーザー数
+// - adminUsers: Number of admin users / 管理者ユーザー数
+// - studentUsers: Number of student users / 学生ユーザー数
+// =============================================================================
 exports.countUsers = onRequest({ cors: true }, async (req, res) => {
-  console.log('=== countUsers function called ===')
-
   try {
+    // Get users collection / usersコレクションを取得
     const usersCollection = admin.firestore().collection('users')
     const snapshot = await usersCollection.get()
 
-    // 総数とロール別カウント
+    // Initialize counters / カウンターの初期化
     let totalUsers = snapshot.size
     let adminCount = 0
     let studentCount = 0
 
+    // Count users by role / ロール別にユーザーをカウント
     snapshot.forEach((doc) => {
       const userData = doc.data()
       if (userData.role === 'admin') {
@@ -183,8 +240,7 @@ exports.countUsers = onRequest({ cors: true }, async (req, res) => {
       }
     })
 
-    console.log(`Total users: ${totalUsers}, Admins: ${adminCount}, Students: ${studentCount}`)
-
+    // Return statistics / 統計情報を返す
     return res.status(200).json({
       success: true,
       totalUsers: totalUsers,
@@ -201,18 +257,23 @@ exports.countUsers = onRequest({ cors: true }, async (req, res) => {
   }
 })
 
-/**
- * イベントの総数をカウントする機能
- */
+// =============================================================================
+// Event Count Function
+// イベント数カウント機能
+//
+// Features / 機能:
+// - Counts total number of events / イベントの総数をカウント
+// - Simple HTTP GET endpoint / シンプルなHTTP GETエンドポイント
+//
+// Response / レスポンス:
+// - count: Total number of events / イベントの総数
+// =============================================================================
 exports.countEvents = onRequest({ cors: true }, async (req, res) => {
-  console.log('=== countEvents function called ===')
-
   try {
+    // Get events collection and count / eventsコレクションを取得してカウント
     const eventsCollection = admin.firestore().collection('events')
     const snapshot = await eventsCollection.get()
     const count = snapshot.size
-
-    console.log(`Total events count: ${count}`)
 
     return res.status(200).json({
       success: true,
@@ -228,13 +289,20 @@ exports.countEvents = onRequest({ cors: true }, async (req, res) => {
   }
 })
 
-/**
- * 国別グループの総数をカウントする機能
- */
+// =============================================================================
+// Country Groups Count Function
+// 国別グループ数カウント機能
+//
+// Features / 機能:
+// - Counts total number of country groups / 国別グループの総数をカウント
+// - Logs count for monitoring / 監視用のカウントログ記録
+//
+// Response / レスポンス:
+// - count: Total number of groups / グループの総数
+// =============================================================================
 exports.countGroups = onRequest({ cors: true }, async (req, res) => {
-  console.log('=== countGroups function called ===')
-
   try {
+    // Get groups collection and count / groupsコレクションを取得してカウント
     const groupsCollection = admin.firestore().collection('groups')
     const snapshot = await groupsCollection.get()
     const count = snapshot.size
@@ -255,20 +323,29 @@ exports.countGroups = onRequest({ cors: true }, async (req, res) => {
   }
 })
 
-/**
- * すべての統計情報を一度に取得する機能
- *
- * 機能概要:
- * - 全コレクションの統計を一度のリクエストで取得
- * - 効率的なダッシュボード表示に最適
- */
+// =============================================================================
+// All Statistics Aggregation Function
+// 全統計情報集約機能
+//
+// Features / 機能:
+// - Retrieves all collection statistics in a single request / 全コレクションの統計を1回のリクエストで取得
+// - Parallel data fetching for efficiency / 効率的な並列データ取得
+// - Ideal for dashboard displays / ダッシュボード表示に最適
+// - Includes user role breakdown / ユーザーロール別内訳を含む
+//
+// Response / レスポンス:
+// - totalUsers: Total user count / 総ユーザー数
+// - adminUsers: Admin user count / 管理者ユーザー数
+// - studentUsers: Student user count / 学生ユーザー数
+// - totalRecipes: Total recipe count / 総レシピ数
+// - totalEvents: Total event count / 総イベント数
+// - totalGroups: Total group count / 総グループ数
+// =============================================================================
 exports.getStats = onRequest({ cors: true }, async (req, res) => {
-  console.log('=== getStats function called ===')
-
   try {
     const db = admin.firestore()
 
-    // 並列で全コレクションのデータを取得
+    // Fetch all collection data in parallel / 並列で全コレクションのデータを取得
     const [usersSnapshot, recipesSnapshot, eventsSnapshot, groupsSnapshot] = await Promise.all([
       db.collection('users').get(),
       db.collection('recipes').get(),
@@ -276,7 +353,7 @@ exports.getStats = onRequest({ cors: true }, async (req, res) => {
       db.collection('groups').get(),
     ])
 
-    // ユーザーのロール別カウント
+    // Count users by role / ユーザーのロール別カウント
     let adminCount = 0
     let studentCount = 0
 
@@ -289,6 +366,7 @@ exports.getStats = onRequest({ cors: true }, async (req, res) => {
       }
     })
 
+    // Aggregate all statistics / 全統計情報を集約
     const stats = {
       totalUsers: usersSnapshot.size,
       adminUsers: adminCount,
@@ -297,8 +375,6 @@ exports.getStats = onRequest({ cors: true }, async (req, res) => {
       totalEvents: eventsSnapshot.size,
       totalGroups: groupsSnapshot.size,
     }
-
-    console.log('All stats collected:', stats)
 
     return res.status(200).json({
       success: true,
@@ -315,11 +391,33 @@ exports.getStats = onRequest({ cors: true }, async (req, res) => {
 })
 
 // =============================================================================
-// BR バルクメール送信機能
+// BR (F): Bulk Email Sending Function
+// BR (F): 一括メール送信機能
+//
+// Bulk Email Delivery to Multiple Recipients
+// 複数受信者への一括メール配信
+//
+// Features / 機能:
+// - Sends identical emails to multiple recipients / 複数受信者に同一メールを送信
+// - Parallel email delivery for efficiency / 効率的な並列メール配信
+// - Batch processing with Promise.all / Promise.allによるバッチ処理
+// - Detailed logging and error reporting / 詳細なログ記録とエラーレポート
+//
+// Request Body / リクエストボディ:
+// - recipients: Array of email addresses / メールアドレスの配列
+// - subject: Email subject line / メール件名
+// - text: Plain text content / プレーンテキストコンテンツ
+// - html: HTML content (optional) / HTMLコンテンツ (オプション)
+//
+// Response / レスポンス:
+// - success: Operation status / 操作ステータス
+// - count: Number of emails sent / 送信されたメール数
+// - message: Success message / 成功メッセージ
 // =============================================================================
 exports.sendBulkEmail = onRequest({ cors: true }, async (req, res) => {
   console.log('=== sendBulkEmail function called ===')
 
+  // Validate HTTP method / HTTPメソッドの検証
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
@@ -328,9 +426,11 @@ exports.sendBulkEmail = onRequest({ cors: true }, async (req, res) => {
   }
 
   try {
+    // Extract request parameters / リクエストパラメータの取得
     const { recipients, subject, text, html } = req.body
     console.log('Bulk email request:', { recipientCount: recipients?.length, subject })
 
+    // Validate recipients array / 受信者配列の検証
     if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
       return res.status(400).json({
         success: false,
@@ -338,6 +438,7 @@ exports.sendBulkEmail = onRequest({ cors: true }, async (req, res) => {
       })
     }
 
+    // Validate required fields / 必須フィールドの検証
     if (!subject || !text) {
       return res.status(400).json({
         success: false,
@@ -345,6 +446,7 @@ exports.sendBulkEmail = onRequest({ cors: true }, async (req, res) => {
       })
     }
 
+    // Verify SendGrid configuration / SendGrid設定の確認
     if (!SENDGRID_API_KEY) {
       return res.status(500).json({
         success: false,
@@ -352,6 +454,7 @@ exports.sendBulkEmail = onRequest({ cors: true }, async (req, res) => {
       })
     }
 
+    // Create email promises for all recipients / 全受信者へのメール送信プロミスを作成
     const emailPromises = recipients.map((recipient) => {
       const msg = {
         to: recipient,
@@ -363,16 +466,19 @@ exports.sendBulkEmail = onRequest({ cors: true }, async (req, res) => {
       return sgMail.send(msg)
     })
 
+    // Send all emails in parallel / 全メールを並列送信
     console.log('Sending bulk emails...')
     await Promise.all(emailPromises)
     console.log('Bulk emails sent successfully!')
 
+    // Return success response / 成功レスポンスを返す
     return res.status(200).json({
       success: true,
       message: `Bulk email sent successfully to ${recipients.length} recipients`,
       count: recipients.length,
     })
   } catch (error) {
+    // Error handling / エラーハンドリング
     console.error('Bulk Email Error:', error)
     return res.status(500).json({
       success: false,

@@ -1,46 +1,132 @@
+<!--
+  App.vue - Main application layout component
+  App.vue - メインアプリケーションレイアウトコンポーネント
+
+  Features / 機能:
+  - Global application layout structure / グローバルアプリケーションレイアウト構造
+  - Navigation bar integration / ナビゲーションバー統合
+  - Responsive sidebar management / レスポンシブサイドバー管理
+  - Footer integration / フッター統合
+  - Router view for page content / ページコンテンツ用のルータービュー
+  - Sidebar overlay for mobile / モバイル用サイドバーオーバーレイ
+
+  BR (A.2): Responsiveness - Responsive design for desktop, tablet, and mobile
+  BR (A.2): レスポンシブ対応 - デスクトップ、タブレット、モバイル向けのレスポンシブデザイン
+  - Desktop: Sidebar navigation with collapsible functionality
+    デスクトップ: 折りたたみ可能なサイドバーナビゲーション
+  - Tablet: Top navigation bar / トップナビゲーションバー
+  - Mobile: Bottom navigation bar / ボトムナビゲーションバー
+
+  Layout Structure / レイアウト構造:
+  - NavBar (top) / ナビゲーションバー（上部）
+  - Sidebar (desktop, left side) / サイドバー（デスクトップ、左側）
+  - Main content area / メインコンテンツエリア
+  - Footer / フッター
+-->
+
 <template>
   <div id="app">
-    <!-- ナビゲーション -->
-    <!-- navigation -->
+    <!--
+      Navigation Bar / ナビゲーションバー
+      Top navigation component visible on all screen sizes
+      すべての画面サイズで表示されるトップナビゲーションコンポーネント
+    -->
     <NavBar />
-    
-    <!-- オーバーレイ（サイドバー展開時の背景暗化） -->
-    <!-- Overlay (darken background when sidebar is expanded) -->
-    <div 
-      v-if="sidebarExpanded" 
+
+    <!--
+      Overlay (Sidebar Background Darken) / オーバーレイ（サイドバー展開時の背景暗化）
+      BR (A.2): Responsiveness - Darkens background when sidebar is expanded on mobile
+      BR (A.2): レスポンシブ対応 - モバイルでサイドバー展開時に背景を暗くする
+
+      Clicking the overlay closes the sidebar
+      オーバーレイをクリックするとサイドバーが閉じる
+    -->
+    <div
+      v-if="sidebarExpanded"
       class="sidebar-overlay"
       @click="closeSidebar"
+      role="button"
+      aria-label="Close sidebar"
+      tabindex="0"
+      @keydown.enter="closeSidebar"
+      @keydown.space.prevent="closeSidebar"
     ></div>
-    
-    <!-- メインコンテンツエリア -->
-    <!-- main content area -->
+
+    <!--
+      Main Content Area / メインコンテンツエリア
+      BR (A.2): Responsiveness - Adjusts layout based on screen size
+      BR (A.2): レスポンシブ対応 - 画面サイズに基づいてレイアウトを調整
+
+      Contains router-view for page content
+      ページコンテンツ用のルータービューを含む
+    -->
     <main class="main-content">
       <router-view />
     </main>
-    
-    <!-- フッター -->
-    <!-- Footer -->
+
+    <!--
+      Footer Component / フッターコンポーネント
+      Application footer displayed at the bottom
+      下部に表示されるアプリケーションフッター
+    -->
     <AppFooter class="app-footer" />
   </div>
 </template>
 
 <script setup>
+// ============================================================================
+// Imports / インポート
+// ============================================================================
 import { ref, onMounted } from 'vue'
 import NavBar from './components/NavBar.vue'
 import AppFooter from './components/AppFooter.vue'
 
+// ============================================================================
+// State Management / 状態管理
+// ============================================================================
+
+/**
+ * Sidebar expanded state / サイドバー展開状態
+ * Tracks whether the sidebar is currently expanded
+ * サイドバーが現在展開されているかどうかを追跡
+ */
 const sidebarExpanded = ref(false)
 
+// ============================================================================
+// Methods / メソッド
+// ============================================================================
+
+/**
+ * Close sidebar / サイドバーを閉じる
+ *
+ * Closes the sidebar and restores body scroll
+ * サイドバーを閉じ、bodyのスクロールを復元
+ */
 const closeSidebar = () => {
   document.body.style.overflow = ''
   window.dispatchEvent(new Event('close-sidebar'))
   sidebarExpanded.value = false
 }
 
+// ============================================================================
+// Lifecycle Hooks / ライフサイクルフック
+// ============================================================================
+
+/**
+ * On Component Mount / コンポーネントマウント時
+ *
+ * Initializes sidebar state from localStorage
+ * Sets up event listener for sidebar state changes
+ *
+ * localStorageからサイドバー状態を初期化
+ * サイドバー状態変更用のイベントリスナーを設定
+ */
 onMounted(() => {
+  // Load saved sidebar state from localStorage / localStorageから保存されたサイドバー状態を読み込む
   const savedState = localStorage.getItem('sidebarExpanded')
   sidebarExpanded.value = savedState === 'true'
-  
+
+  // Listen for sidebar state change events / サイドバー状態変更イベントをリッスン
   window.addEventListener('sidebar-state-changed', (e) => {
     sidebarExpanded.value = e.detail.isExpanded
   })
@@ -48,64 +134,71 @@ onMounted(() => {
 </script>
 
 <style>
-/* Bootstrap読み込み */
-/* Load Bootstrap */
+/* ============================================================================
+   Global Styles / グローバルスタイル
+   BR (A.2): Responsiveness - Responsive layout styles for all screen sizes
+   BR (A.2): レスポンシブ対応 - すべての画面サイズ向けのレスポンシブレイアウトスタイル
+   ============================================================================ */
+
+/* Load Bootstrap / Bootstrap読み込み */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
-/* Font Awesome読み込み（CDN使用） */
-/* Load Font Awesome (using CDN) */
+/* Load Font Awesome (using CDN) / Font Awesome読み込み（CDN使用） */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
-/* === グローバルレイアウトスタイル === */
-/* === Global layout styles === */
+/* ============================================================================
+   Global Layout Styles / グローバルレイアウトスタイル
+   ============================================================================ */
 
-/* アプリ全体の構造 */
-/* Overall app structure */
+/* Overall app structure / アプリ全体の構造 */
 #app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* メインコンテンツエリア */
-/* Main content area */
+/* Main content area / メインコンテンツエリア */
 .main-content {
   flex: 1;
   width: 100%;
 }
 
-/* === デスクトップレイアウト - サイドバー対応 === */
-/* === Desktop Layout - Sidebar Support === */
+/* ============================================================================
+   BR (A.2): Desktop Layout - Sidebar Support
+   BR (A.2): デスクトップレイアウト - サイドバー対応
+
+   Desktop screens (≥992px) have a collapsible sidebar on the left
+   デスクトップ画面（≥992px）は左側に折りたたみ可能なサイドバーを持つ
+   ============================================================================ */
 @media (min-width: 992px) {
   .main-content {
-    margin-top: 3.5em; /* NavBar height */
-    /* Width of sidebar when collapsed */
-    padding-left: 4.5em; /* サイドバー縮小時の幅 */
+    margin-top: 3.5em; /* NavBar height / NavBarの高さ */
+    padding-left: 4.5em; /* Width of sidebar when collapsed / サイドバー縮小時の幅 */
     transition: padding-left 0.2s ease;
     width: 100%;
   }
-  
-  /* サイドバー展開時 */
-  /* When the sidebar is expanded */
+
+  /* When the sidebar is expanded / サイドバー展開時 */
   .main-content.sidebar-expanded {
-    /* Width when sidebar is expanded */
-    padding-left: 15em; /* サイドバー展開時の幅 */
+    padding-left: 15em; /* Width when sidebar is expanded / サイドバー展開時の幅 */
   }
-  
+
   .app-footer {
-    /* Width of sidebar when collapsed */
-    padding-left: 4.5em; /* サイドバー縮小時の幅 */
+    padding-left: 4.5em; /* Width of sidebar when collapsed / サイドバー縮小時の幅 */
     transition: padding-left 0.2s ease;
   }
-  
+
   .app-footer.sidebar-expanded {
-    /* Width when sidebar is expanded */
-    padding-left: 15em; /* サイドバー展開時の幅 */
+    padding-left: 15em; /* Width when sidebar is expanded / サイドバー展開時の幅 */
   }
 }
 
-/* === サイドバーオーバーレイ === */
-/* === Sidebar Overlay === */
+/* ============================================================================
+   Sidebar Overlay / サイドバーオーバーレイ
+
+   Dark overlay that appears when sidebar is open on mobile
+   モバイルでサイドバーが開いているときに表示される暗いオーバーレイ
+   ============================================================================ */
 .sidebar-overlay {
   position: fixed;
   top: 3.5em;
@@ -117,7 +210,12 @@ onMounted(() => {
   transition: opacity 0.3s ease;
 }
 
-/* === タブレットレイアウト === */
+/* ============================================================================
+   BR (A.2): Tablet Layout / タブレットレイアウト
+
+   Tablet screens (768px - 991.98px) use top navigation only
+   タブレット画面（768px - 991.98px）はトップナビゲーションのみを使用
+   ============================================================================ */
 @media (min-width: 768px) and (max-width: 991.98px) {
   .main-content {
     margin-left: 0;
@@ -125,7 +223,7 @@ onMounted(() => {
     padding-left: 1em;
     padding-right: 1em;
   }
-  
+
   .app-footer {
     margin-left: 0;
     padding-left: 1em;
@@ -133,32 +231,34 @@ onMounted(() => {
   }
 }
 
-/* === モバイルレイアウト === */
-/* === Mobile Layout === */
+/* ============================================================================
+   BR (A.2): Mobile Layout / モバイルレイアウト
+
+   Mobile screens (≤767.98px) use bottom navigation bar
+   モバイル画面（≤767.98px）はボトムナビゲーションバーを使用
+   ============================================================================ */
 @media (max-width: 767.98px) {
   .main-content {
-    /* Bottom navigation height */
-    margin-bottom: 3.75em; /* ボトムナビゲーションの高さ分 */
+    margin-bottom: 3.75em; /* Bottom navigation height / ボトムナビゲーションの高さ分 */
     margin-left: 0;
     margin-top: 3.5em;
     padding-left: 0.75em;
     padding-right: 0.75em;
   }
-  
+
   .app-footer {
     margin-left: 0;
-    /* Raise the footer by the amount of bottom navigation */
-    margin-bottom: 3.75em; /* フッターもボトムナビ分上げる */
+    margin-bottom: 3.75em; /* Raise the footer by the amount of bottom navigation / フッターもボトムナビ分上げる */
     padding-left: 0.75em;
     padding-right: 0.75em;
   }
 }
 
-/* === コンテンツ内部の調整 === */
-/* === Internal content adjustment === */
+/* ============================================================================
+   Internal Content Adjustment / コンテンツ内部の調整
+   ============================================================================ */
 
-/* コンテナの最大幅制限 */
-/* Maximum container width limit */
+/* Maximum container width limit / コンテナの最大幅制限 */
 .main-content .container,
 .main-content .container-fluid {
   max-width: 100%;
@@ -178,14 +278,13 @@ onMounted(() => {
   }
 }
 
-/* === ページ固有の調整 === */
-/* === Page-specific adjustments === */
+/* ============================================================================
+   Page-specific Adjustments / ページ固有の調整
+   ============================================================================ */
 
-/* ホームページのヒーローセクション */
-/* Home page hero section */
+/* Home page hero section / ホームページのヒーローセクション */
 .hero-section {
-  /* Consider the height of the NavBar */
-  min-height: calc(100vh - 3.75em); /* NavBarの高さを考慮 */
+  min-height: calc(100vh - 3.75em); /* Consider the height of the NavBar / NavBarの高さを考慮 */
   display: flex;
   align-items: center;
   padding: 2em 0;
@@ -193,14 +292,14 @@ onMounted(() => {
 
 @media (max-width: 767.98px) {
   .hero-section {
-    /* Top Navigation + Bottom Navigation */
-    min-height: calc(100vh - 7.25em); /* トップナビ + ボトムナビ */
+    min-height: calc(
+      100vh - 7.25em
+    ); /* Top Navigation + Bottom Navigation / トップナビ + ボトムナビ */
     padding: 1.5em 0;
   }
 }
 
-/* ダッシュボードの調整 */
-/* Dashboard adjustments */
+/* Dashboard adjustments / ダッシュボードの調整 */
 .dashboard-container {
   padding-top: 1.25em;
   min-height: calc(100vh - 3.75em);
@@ -213,42 +312,39 @@ onMounted(() => {
   }
 }
 
-/* === スクロール調整 === */
-/* === Scroll adjustment === */
+/* ============================================================================
+   Scroll Adjustment / スクロール調整
+   ============================================================================ */
 
-/* サイドバーがある時のスクロール調整 */
-/* Scroll adjustment when there is a sidebar */
+/* Scroll adjustment when there is a sidebar / サイドバーがある時のスクロール調整 */
 @media (min-width: 992px) {
   .main-content {
     overflow-x: hidden;
   }
 }
 
-/* モバイルでのスクロール改善 */
-/* Improved scrolling on mobile */
+/* Improved scrolling on mobile / モバイルでのスクロール改善 */
 @media (max-width: 767.98px) {
-  /* iOS Safari対応 */
-  /* iOS Safari compatible */
+  /* iOS Safari compatible / iOS Safari対応 */
   .main-content {
     -webkit-overflow-scrolling: touch;
   }
-  
-  /* 安全エリア対応 */
-  /* Safe area compatible */
+
+  /* Safe area compatible / 安全エリア対応 */
   .main-content {
     margin-bottom: calc(3.75em + env(safe-area-inset-bottom));
   }
-  
+
   .app-footer {
     margin-bottom: calc(3.75em + env(safe-area-inset-bottom));
   }
 }
 
-/* === アニメーション === */
-/* === Animation === */
+/* ============================================================================
+   Animation / アニメーション
+   ============================================================================ */
 
-/* ページ遷移時のスムーズ移行 */
-/* Smooth transitions when transitioning pages */
+/* Smooth transitions when transitioning pages / ページ遷移時のスムーズ移行 */
 .main-content {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.6, 1);
 }
@@ -257,24 +353,22 @@ onMounted(() => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-/* オーバーレイのアニメーション */
-/* Overlay animation */
+/* Overlay animation / オーバーレイのアニメーション */
 .sidebar-overlay {
   opacity: 1;
   transition: opacity 0.3s ease;
 }
 
-/* サイドバーが閉じられる時のアニメーション */
-/* Animation when the sidebar is closed */
+/* Animation when the sidebar is closed / サイドバーが閉じられる時のアニメーション */
 .sidebar-overlay.fade-out {
   opacity: 0;
 }
 
-/* === コンテンツ余白の調整 === */
-/* === Content margin adjustment === */
+/* ============================================================================
+   Content Margin Adjustment / コンテンツ余白の調整
+   ============================================================================ */
 
-/* 一般的なページコンテンツ */
-/* General page content */
+/* General page content / 一般的なページコンテンツ */
 .page-content {
   padding: 1.5em 0;
 }
@@ -285,8 +379,7 @@ onMounted(() => {
   }
 }
 
-/* カードコンテナ */
-/* Card Container */
+/* Card Container / カードコンテナ */
 .card-container {
   margin-bottom: 1.5em;
 }
@@ -297,13 +390,15 @@ onMounted(() => {
   }
 }
 
-/* === テキストとフォントサイズ調整 === */
-/* === Text and font size adjustment === */
+/* ============================================================================
+   Text and Font Size Adjustment / テキストとフォントサイズ調整
+   BR (A.2): Responsiveness - Responsive typography
+   BR (A.2): レスポンシブ対応 - レスポンシブタイポグラフィ
+   ============================================================================ */
 
-/* レスポンシブフォントサイズ */
-/* Responsive font size */
+/* Responsive font size / レスポンシブフォントサイズ */
 .main-content h1 {
-  font-size: 2.25rem; /* Desktop */
+  font-size: 2.25rem; /* Desktop / デスクトップ */
 }
 
 .main-content h2 {
@@ -316,44 +411,64 @@ onMounted(() => {
 
 @media (max-width: 767.98px) {
   .main-content h1 {
-    font-size: 1.875rem; /* Mobile */
+    font-size: 1.875rem; /* Mobile / モバイル */
   }
-  
+
   .main-content h2 {
     font-size: 1.5rem;
   }
-  
+
   .main-content h3 {
     font-size: 1.25rem;
   }
 }
 
-/* === ユーティリティクラス === */
-/* === Utility Class === */
+/* ============================================================================
+   Utility Classes / ユーティリティクラス
+   ============================================================================ */
 
-/* 余白ユーティリティ（em単位） */
-/* Margin utilities (em units) */
-.mt-em-1 { margin-top: 1em !important; }
-.mt-em-2 { margin-top: 2em !important; }
-.mt-em-3 { margin-top: 3em !important; }
+/* Margin utilities (em units) / 余白ユーティリティ（em単位） */
+.mt-em-1 {
+  margin-top: 1em !important;
+}
+.mt-em-2 {
+  margin-top: 2em !important;
+}
+.mt-em-3 {
+  margin-top: 3em !important;
+}
 
-.mb-em-1 { margin-bottom: 1em !important; }
-.mb-em-2 { margin-bottom: 2em !important; }
-.mb-em-3 { margin-bottom: 3em !important; }
+.mb-em-1 {
+  margin-bottom: 1em !important;
+}
+.mb-em-2 {
+  margin-bottom: 2em !important;
+}
+.mb-em-3 {
+  margin-bottom: 3em !important;
+}
 
-.pt-em-1 { padding-top: 1em !important; }
-.pt-em-2 { padding-top: 2em !important; }
-.pt-em-3 { padding-top: 3em !important; }
+.pt-em-1 {
+  padding-top: 1em !important;
+}
+.pt-em-2 {
+  padding-top: 2em !important;
+}
+.pt-em-3 {
+  padding-top: 3em !important;
+}
 
-.pb-em-1 { padding-bottom: 1em !important; }
-.pb-em-2 { padding-bottom: 2em !important; }
-.pb-em-3 { padding-bottom: 3em !important; }
+.pb-em-1 {
+  padding-bottom: 1em !important;
+}
+.pb-em-2 {
+  padding-bottom: 2em !important;
+}
+.pb-em-3 {
+  padding-bottom: 3em !important;
+}
 
-/* === 特別な調整 === */
-/* === Special tweaks === */
-
-/* フォームとボタンの統一 */
-/* Form and button unification */
+/* Form and button unification / フォームとボタンの統一 */
 .main-content .btn {
   padding: 0.5em 1em;
   font-size: 0.875rem;
@@ -372,8 +487,7 @@ onMounted(() => {
   border-radius: 0.25em;
 }
 
-/* 入力フィールドの調整 */
-/* Adjust input fields */
+/* Adjust input fields / 入力フィールドの調整 */
 .main-content .form-control {
   padding: 0.5em 0.75em;
   font-size: 0.875rem;
