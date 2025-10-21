@@ -46,7 +46,7 @@
             <h6 class="fw-bold text-dark mb-3">About</h6>
             <ul class="list-unstyled">
               <li class="mb-2">
-                <a href="#" class="text-muted text-decoration-none footer-link">Global Plate</a>
+                <a href="/" class="text-muted text-decoration-none footer-link">Global Plate</a>
               </li>
             </ul>
           </div>
@@ -115,7 +115,9 @@
 
               <!-- Food Map page link (placeholder) / Food Mapページへのリンク（プレースホルダー） -->
               <li class="mb-2">
-                <a href="#" class="text-muted text-decoration-none footer-link"> Food Map </a>
+                <a href="/geo-location" class="text-muted text-decoration-none footer-link">
+                  Food Map
+                </a>
               </li>
             </ul>
           </div>

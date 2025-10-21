@@ -1,177 +1,207 @@
 <!--
-  Admin Dashboard Page - System administrator dashboard with statistics and charts
-  管理者ダッシュボードページ - 統計情報とチャートを表示するシステム管理者ダッシュボード
+  Admin Dashboard - Administrative control panel with platform statistics
+  管理者ダッシュボード - プラットフォーム統計を含む管理制御パネル
 
   Features / 機能:
-  - Real-time statistics display from Firestore / Firestoreからのリアルタイム統計表示
-  - Interactive charts using Chart.js / Chart.jsを使用したインタラクティブなチャート
-  - User distribution visualization / ユーザー分布の視覚化
-  - Content overview (recipes, events, groups) / コンテンツ概要
-  - Quick access to management pages / 管理ページへのクイックアクセス
+  - Real-time platform statistics display / リアルタイムプラットフォーム統計表示
+  - Interactive charts using Chart.js / Chart.jsを使用したインタラクティブチャート
+  - User analytics (total, students, admins) / ユーザー分析（合計、学生、管理者）
+  - Content metrics (recipes, events, groups) / コンテンツメトリクス（レシピ、イベント、グループ）
+  - Quick action buttons for admin tasks / 管理タスク用のクイックアクションボタン
 
-  BR (C.2): Role-based Authentication - Admin-only access
-  BR (C.2): ロールベース認証 - 管理者専用アクセス
-
-  BR (F.1): Innovation - Admin Dashboard
-  BR (F.1): イノベーション - 管理者ダッシュボード
-  Provides comprehensive system overview with interactive visualizations
-  インタラクティブな視覚化による包括的なシステム概要を提供
-
-  BR (E.1): Cloud Functions - Statistics data fetching
-  BR (E.1): Cloud Functions - 統計データ取得
-  Uses Firebase Cloud Functions to aggregate system statistics
-  Firebase Cloud Functionsを使用してシステム統計を集約
-
-  BR (E.3): Accessibility - ARIA labels and semantic HTML
-  BR (E.3): アクセシビリティ - ARIAラベルとセマンティックHTML
+  BR (C.2): Role-based authentication - Admin-only access
+  BR (E.1): Cloud Functions - Statistics data retrieval
+  BR (F.1): Innovation - Interactive Charts with Firestore data
 -->
 
 <template>
   <div class="admin-dashboard">
     <div class="container-fluid px-4 py-4">
-      <!-- ============================================================================
-           Header Section / ヘッダーセクション
-           ============================================================================ -->
-      <div class="row mb-4">
-        <div class="col-12">
-          <h2 class="mb-1">
-            <i class="fas fa-tachometer-alt me-2 text-primary" aria-hidden="true"></i>
-            Admin Dashboard
-          </h2>
-          <p class="text-muted">System overview and statistics</p>
+      <!-- Dashboard Header / ダッシュボードヘッダー -->
+      <div class="d-flex align-items-center mb-4">
+        <i class="fas fa-crown text-warning me-3 fs-4"></i>
+        <h1 class="h3 mb-0">Admin Dashboard</h1>
+      </div>
+
+      <!-- Error Display / エラー表示 -->
+      <div v-if="error" class="alert alert-danger mb-4">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ error }}
+      </div>
+
+      <!-- Statistics Cards Section / 統計カードセクション -->
+      <div class="row g-4 mb-4">
+        <!-- Total Users Card -->
+        <div class="col-md-3">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <i class="fas fa-users text-primary fs-2 mb-2"></i>
+              <h5>Total Users</h5>
+              <div
+                v-if="loading"
+                class="spinner-border spinner-border-sm text-primary"
+                role="status"
+              >
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <h3 v-else class="text-primary">{{ stats.totalUsers }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipes Card -->
+        <div class="col-md-3">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <i class="fas fa-utensils text-success fs-2 mb-2"></i>
+              <h5>Recipes</h5>
+              <div
+                v-if="loading"
+                class="spinner-border spinner-border-sm text-success"
+                role="status"
+              >
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <h3 v-else class="text-success">{{ stats.totalRecipes }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Events Card -->
+        <div class="col-md-3">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <i class="fas fa-calendar text-info fs-2 mb-2"></i>
+              <h5>Events</h5>
+              <div v-if="loading" class="spinner-border spinner-border-sm text-info" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <h3 v-else class="text-info">{{ stats.totalEvents }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Country Groups Card -->
+        <div class="col-md-3">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <i class="fas fa-globe text-warning fs-2 mb-2"></i>
+              <h5>Country Groups</h5>
+              <div
+                v-if="loading"
+                class="spinner-border spinner-border-sm text-warning"
+                role="status"
+              >
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <h3 v-else class="text-warning">{{ stats.totalGroups }}</h3>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Loading State / ローディング状態 -->
-      <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
+      <!-- BR (F.1): Interactive Charts Section / インタラクティブチャートセクション -->
+      <!-- Displays Firestore data visually using Chart.js -->
+      <div class="row g-4 mb-4">
+        <!-- User Distribution Pie Chart / ユーザー分布円グラフ -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-chart-pie me-2"></i>User Distribution by Role
+              </h5>
+            </div>
+            <div class="card-body">
+              <canvas id="userRoleChart" style="max-height: 300px"></canvas>
+            </div>
+          </div>
         </div>
-        <p class="mt-3 text-muted">Loading dashboard data...</p>
+
+        <!-- Platform Content Bar Chart / プラットフォームコンテンツ棒グラフ -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-chart-bar me-2"></i>Platform Content Overview
+              </h5>
+            </div>
+            <div class="card-body">
+              <canvas id="contentChart" style="max-height: 300px"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Dashboard Content / ダッシュボードコンテンツ -->
-      <div v-else>
-        <!-- ============================================================================
-             Statistics Cards / 統計カード
-             BR (F.1): Innovation - Display key metrics in card format
-             ============================================================================ -->
-        <div class="row mb-4">
-          <!-- Total Users Card -->
-          <div class="col-md-6 col-lg-3 mb-3">
-            <div class="stats-card">
-              <div class="stats-icon bg-primary">
-                <i class="fas fa-users"></i>
-              </div>
-              <div class="stats-content">
-                <h3>{{ stats.totalUsers }}</h3>
-                <p>Total Users</p>
-              </div>
+      <!-- Detailed Statistics Section -->
+      <div class="row g-4 mb-4">
+        <!-- User Statistics Card -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0"><i class="fas fa-users me-2"></i>User Statistics</h5>
             </div>
-          </div>
-
-          <!-- Total Recipes Card -->
-          <div class="col-md-6 col-lg-3 mb-3">
-            <div class="stats-card">
-              <div class="stats-icon bg-success">
-                <i class="fas fa-utensils"></i>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span> <i class="fas fa-user text-primary me-2"></i>Student Members: </span>
+                <strong class="text-primary">{{ stats.studentUsers }}</strong>
               </div>
-              <div class="stats-content">
-                <h3>{{ stats.totalRecipes }}</h3>
-                <p>Total Recipes</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Total Events Card -->
-          <div class="col-md-6 col-lg-3 mb-3">
-            <div class="stats-card">
-              <div class="stats-icon bg-warning">
-                <i class="fas fa-calendar-alt"></i>
-              </div>
-              <div class="stats-content">
-                <h3>{{ stats.totalEvents }}</h3>
-                <p>Total Events</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Total Groups Card -->
-          <div class="col-md-6 col-lg-3 mb-3">
-            <div class="stats-card">
-              <div class="stats-icon bg-info">
-                <i class="fas fa-globe"></i>
-              </div>
-              <div class="stats-content">
-                <h3>{{ stats.totalGroups }}</h3>
-                <p>Country Groups</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <span> <i class="fas fa-crown text-warning me-2"></i>Administrators: </span>
+                <strong class="text-warning">{{ stats.adminUsers }}</strong>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ============================================================================
-             Charts Section / チャートセクション
-             BR (F.1): Innovation - Interactive Charts using Chart.js
-             ============================================================================ -->
-        <div class="row mb-4">
-          <!-- User Distribution Chart -->
-          <div class="col-lg-6 mb-4">
-            <div class="chart-card">
-              <h5 class="chart-title">
-                <i class="fas fa-chart-pie me-2"></i>
-                User Distribution by Role
+        <!-- Platform Activity Card -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-chart-line me-2"></i>Platform Activity
               </h5>
-              <div class="chart-container">
-                <canvas ref="userChartCanvas"></canvas>
-              </div>
             </div>
-          </div>
-
-          <!-- Content Overview Chart -->
-          <div class="col-lg-6 mb-4">
-            <div class="chart-card">
-              <h5 class="chart-title">
-                <i class="fas fa-chart-bar me-2"></i>
-                Content Overview
-              </h5>
-              <div class="chart-container">
-                <canvas ref="contentChartCanvas"></canvas>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span> <i class="fas fa-utensils text-success me-2"></i>Total Recipes: </span>
+                <strong class="text-success">{{ stats.totalRecipes }}</strong>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span> <i class="fas fa-calendar text-info me-2"></i>Active Events: </span>
+                <strong class="text-info">{{ stats.totalEvents }}</strong>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- ============================================================================
-             Quick Actions / クイックアクション
-             ============================================================================ -->
-        <div class="row">
-          <div class="col-12">
-            <div class="quick-actions-card">
-              <h5 class="mb-3">
-                <i class="fas fa-bolt me-2"></i>
-                Quick Actions
-              </h5>
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <router-link to="/admin/manage-users" class="action-button">
-                    <i class="fas fa-users-cog"></i>
-                    <span>Manage Users</span>
-                  </router-link>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <router-link to="/recipes" class="action-button">
-                    <i class="fas fa-utensils"></i>
-                    <span>View Recipes</span>
-                  </router-link>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <router-link to="/events-calendar" class="action-button">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Manage Events</span>
-                  </router-link>
-                </div>
-              </div>
+      <!-- Admin Quick Actions Section -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <router-link to="/admin/users" class="btn btn-outline-primary w-100">
+                <i class="fas fa-users-cog me-2"></i>Manage Users
+              </router-link>
+            </div>
+            <div class="col-md-6">
+              <button class="btn btn-outline-success w-100">
+                <i class="fas fa-shield-alt me-2"></i>Content Moderation
+              </button>
+            </div>
+            <div class="col-md-6">
+              <button class="btn btn-outline-info w-100">
+                <i class="fas fa-chart-bar me-2"></i>View Reports
+              </button>
+            </div>
+            <div class="col-md-6">
+              <button class="btn btn-outline-warning w-100" @click="fetchStats" :disabled="loading">
+                <i class="fas fa-sync-alt me-2" :class="{ 'fa-spin': loading }"></i>
+                {{ loading ? 'Refreshing...' : 'Refresh Statistics' }}
+              </button>
             </div>
           </div>
         </div>
@@ -181,133 +211,118 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { getAuth } from 'firebase/auth'
+import { ref, onMounted, nextTick } from 'vue'
+import axios from 'axios'
 import Chart from 'chart.js/auto'
-
-// Router instance / ルーターインスタンス
-const router = useRouter()
 
 // ============================================================================
 // Component State / コンポーネント状態
 // ============================================================================
 
-// Loading state / ローディング状態
-const loading = ref(true)
-
-// Statistics data / 統計データ
+/**
+ * BR (E.1): Cloud Functions - Statistics data object
+ * Stores aggregated platform statistics from Cloud Function
+ */
 const stats = ref({
   totalUsers: 0,
-  adminUsers: 0,
   studentUsers: 0,
+  adminUsers: 0,
   totalRecipes: 0,
   totalEvents: 0,
   totalGroups: 0,
 })
 
-// Chart references / チャート参照
-const userChartCanvas = ref(null)
-const contentChartCanvas = ref(null)
-let userChart = null
+const loading = ref(true)
+const error = ref(null)
+
+/**
+ * BR (F.1): Chart.js instances
+ * Stores Chart.js chart instances for cleanup
+ */
+let userRoleChart = null
 let contentChart = null
 
 // ============================================================================
-// BR (E.1): Cloud Functions - Fetch Statistics from Firebase Functions
-// BR (E.1): Cloud Functions - Firebase Functionsから統計を取得
+// Data Fetching Methods / データ取得メソッド
 // ============================================================================
 
 /**
- * Fetch all statistics from Cloud Function
- * Cloud Functionから全統計を取得
- *
- * Uses the getAllStats endpoint to retrieve aggregated data
- * getAllStatsエンドポイントを使用して集約データを取得
+ * BR (E.1): Fetch all statistics from Cloud Function
+ * Retrieves aggregated statistics in a single efficient API call
  */
-const fetchStatistics = async () => {
+const fetchStats = async () => {
+  loading.value = true
+  error.value = null
+
   try {
-    loading.value = true
+    // FIXED: Updated Cloud Function URL to match deployment
+    const url = 'https://getstats-ozumaphooq-uc.a.run.app'
 
-    // Get current user's ID token for authentication
-    // 認証用に現在のユーザーのIDトークンを取得
-    const auth = getAuth()
-    const user = auth.currentUser
+    console.log('Fetching statistics from Cloud Function...')
 
-    if (!user) {
-      console.error('No authenticated user')
-      router.push('/login')
-      return
+    const response = await axios.get(url)
+
+    console.log('Response from Cloud Function:', response.data)
+
+    if (response.data.success) {
+      stats.value = response.data.stats
+      console.log('Statistics loaded successfully:', stats.value)
+
+      // BR (F.1): Update charts after stats are loaded
+      // Wait for DOM to update before creating/updating charts
+      await nextTick()
+      createCharts()
+    } else {
+      error.value = 'Failed to load statistics'
     }
-
-    const idToken = await user.getIdToken()
-
-    // Call Cloud Function using fetch API
-    // Fetch APIを使用してCloud Functionを呼び出し
-    const response = await fetch(
-      'https://us-central1-global-plate-dev.cloudfunctions.net/getAllStats',
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      },
-    )
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-
-    if (data.success) {
-      stats.value = data.stats
-      console.log('Statistics loaded:', stats.value)
-
-      // Create charts after data is loaded
-      // データ読み込み後にチャートを作成
-      await createCharts()
-    }
-  } catch (error) {
-    console.error('Error fetching statistics:', error)
-    alert('Failed to load dashboard statistics')
+  } catch (err) {
+    console.error('Error calling Cloud Function:', err)
+    error.value = 'Failed to connect to server. Please try again later.'
   } finally {
     loading.value = false
   }
 }
 
 // ============================================================================
-// BR (F.1): Innovation - Create Interactive Charts using Chart.js
-// BR (F.1): イノベーション - Chart.jsを使用したインタラクティブなチャート作成
+// BR (F.1): Chart.js Interactive Charts / インタラクティブチャート
 // ============================================================================
 
 /**
- * Create interactive charts for data visualization
- * データ視覚化用のインタラクティブなチャートを作成
+ * Create Interactive Charts using Chart.js
+ * Chart.jsを使用してインタラクティブチャートを作成
+ *
+ * Creates two charts:
+ * 1. Pie Chart: User distribution by role (Admin vs Student)
+ * 2. Bar Chart: Platform content overview (Recipes, Events, Groups)
  */
-const createCharts = async () => {
-  // Wait for next tick to ensure canvas elements are mounted
-  // canvas要素がマウントされるまで次のティックを待つ
-  await new Promise((resolve) => setTimeout(resolve, 100))
+const createCharts = () => {
+  // Clean up existing charts / 既存のチャートをクリーンアップ
+  if (userRoleChart) {
+    userRoleChart.destroy()
+  }
+  if (contentChart) {
+    contentChart.destroy()
+  }
 
-  // Destroy existing charts if they exist
-  // 既存のチャートがあれば破棄
-  if (userChart) userChart.destroy()
-  if (contentChart) contentChart.destroy()
-
-  // User Distribution Pie Chart
-  // ユーザー分布円グラフ
-  if (userChartCanvas.value) {
-    const userCtx = userChartCanvas.value.getContext('2d')
-    userChart = new Chart(userCtx, {
-      type: 'doughnut',
+  // ===================================================================
+  // Chart 1: User Role Distribution Pie Chart / ユーザーロール分布円グラフ
+  // ===================================================================
+  const userRoleCtx = document.getElementById('userRoleChart')
+  if (userRoleCtx) {
+    userRoleChart = new Chart(userRoleCtx, {
+      type: 'pie',
       data: {
-        labels: ['Admin Users', 'Student Users'],
+        labels: ['Student Members', 'Administrators'],
         datasets: [
           {
-            data: [stats.value.adminUsers, stats.value.studentUsers],
-            backgroundColor: ['#0d6efd', '#6c757d'],
+            label: 'Users',
+            data: [stats.value.studentUsers, stats.value.adminUsers],
+            backgroundColor: [
+              'rgba(13, 110, 253, 0.8)', // Bootstrap primary blue
+              'rgba(255, 193, 7, 0.8)', // Bootstrap warning yellow
+            ],
+            borderColor: ['rgba(13, 110, 253, 1)', 'rgba(255, 193, 7, 1)'],
             borderWidth: 2,
-            borderColor: '#ffffff',
           },
         ],
       },
@@ -330,7 +345,7 @@ const createCharts = async () => {
                 const label = context.label || ''
                 const value = context.parsed || 0
                 const total = stats.value.totalUsers
-                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0
+                const percentage = ((value / total) * 100).toFixed(1)
                 return `${label}: ${value} (${percentage}%)`
               },
             },
@@ -340,20 +355,26 @@ const createCharts = async () => {
     })
   }
 
-  // Content Overview Bar Chart
-  // コンテンツ概要棒グラフ
-  if (contentChartCanvas.value) {
-    const contentCtx = contentChartCanvas.value.getContext('2d')
+  // ===================================================================
+  // Chart 2: Platform Content Bar Chart / プラットフォームコンテンツ棒グラフ
+  // ===================================================================
+  const contentCtx = document.getElementById('contentChart')
+  if (contentCtx) {
     contentChart = new Chart(contentCtx, {
       type: 'bar',
       data: {
-        labels: ['Recipes', 'Events', 'Groups'],
+        labels: ['Recipes', 'Events', 'Country Groups'],
         datasets: [
           {
             label: 'Total Count',
             data: [stats.value.totalRecipes, stats.value.totalEvents, stats.value.totalGroups],
-            backgroundColor: ['#198754', '#ffc107', '#0dcaf0'],
-            borderWidth: 0,
+            backgroundColor: [
+              'rgba(25, 135, 84, 0.8)', // Bootstrap success green
+              'rgba(13, 202, 240, 0.8)', // Bootstrap info cyan
+              'rgba(255, 193, 7, 0.8)', // Bootstrap warning yellow
+            ],
+            borderColor: ['rgba(25, 135, 84, 1)', 'rgba(13, 202, 240, 1)', 'rgba(255, 193, 7, 1)'],
+            borderWidth: 2,
           },
         ],
       },
@@ -365,6 +386,7 @@ const createCharts = async () => {
             beginAtZero: true,
             ticks: {
               stepSize: 1,
+              precision: 0,
             },
           },
         },
@@ -375,7 +397,7 @@ const createCharts = async () => {
           tooltip: {
             callbacks: {
               label: function (context) {
-                return `${context.label}: ${context.parsed.y}`
+                return `Count: ${context.parsed.y}`
               },
             },
           },
@@ -389,168 +411,84 @@ const createCharts = async () => {
 // Lifecycle Hooks / ライフサイクルフック
 // ============================================================================
 
-onMounted(async () => {
-  // Check if user is admin
-  // ユーザーが管理者かチェック
-  const auth = getAuth()
-  const user = auth.currentUser
-
-  if (!user) {
-    router.push('/login')
-    return
-  }
-
-  // Fetch statistics and create charts
-  // 統計を取得してチャートを作成
-  await fetchStatistics()
+/**
+ * Component mounted lifecycle hook
+ * Fetches statistics when dashboard loads
+ */
+onMounted(() => {
+  console.log('AdminDashboard mounted, loading statistics from Cloud Functions...')
+  fetchStats()
 })
 </script>
 
 <style scoped>
 /* ============================================================================
-   Dashboard Styles / ダッシュボードスタイル
+   Admin Dashboard Layout Styles / 管理者ダッシュボードレイアウトスタイル
    ============================================================================ */
 
 .admin-dashboard {
+  padding-top: 3.5em;
   min-height: 100vh;
   background-color: #f8f9fa;
 }
 
-/* Statistics Cards / 統計カード */
-.stats-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+@media (min-width: 992px) {
+  .admin-dashboard {
+    margin-left: 4.5em;
+    transition: margin-left 0.2s ease;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding-bottom: 4em;
+  }
+}
+
+/* ============================================================================
+   Card Styles / カードスタイル
+   ============================================================================ */
+
+.card {
+  border-radius: 10px;
   transition:
     transform 0.2s,
     box-shadow 0.2s;
 }
 
-.stats-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.stats-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
+/* ============================================================================
+   Loading Spinner Styles / ローディングスピナースタイル
+   ============================================================================ */
+
+.spinner-border-sm {
+  width: 2rem;
+  height: 2rem;
 }
 
-.stats-content h3 {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 0;
-  color: #212529;
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
 }
 
-.stats-content p {
-  margin: 0;
-  color: #6c757d;
-  font-size: 0.9rem;
-}
-
-/* Chart Cards / チャートカード */
-.chart-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height: 100%;
-}
-
-.chart-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #212529;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #f8f9fa;
-}
-
-.chart-container {
-  position: relative;
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Quick Actions / クイックアクション */
-.quick-actions-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.action-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  background: #f8f9fa;
-  border-radius: 12px;
-  text-decoration: none;
-  color: #495057;
-  transition: all 0.2s;
-  height: 100%;
-}
-
-.action-button:hover {
-  background: #0d6efd;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
-}
-
-.action-button i {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.action-button span {
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-/* Responsive Design / レスポンシブデザイン */
-@media (max-width: 768px) {
-  .stats-card {
-    flex-direction: column;
-    text-align: center;
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
   }
-
-  .stats-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 1.25rem;
+  100% {
+    transform: rotate(360deg);
   }
+}
 
-  .stats-content h3 {
-    font-size: 1.75rem;
-  }
+/* ============================================================================
+   BR (F.1): Chart Container Styles / チャートコンテナスタイル
+   ============================================================================ */
 
-  .chart-container {
-    height: 250px;
-  }
-
-  .action-button {
-    padding: 1.5rem 1rem;
-  }
-
-  .action-button i {
-    font-size: 1.5rem;
-  }
+canvas {
+  max-width: 100%;
+  height: auto !important;
 }
 </style>
