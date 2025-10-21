@@ -162,11 +162,44 @@ exports.sendEmail = onRequest({ cors: true }, async (req, res) => {
 })
 
 // =============================================================================
+// BR (F.1): Innovation - API Access
+// BR (F.1): イノベーション - API アクセス
+//
+// This application provides REST API access to third parties through the
+// following Cloud Functions endpoints. External applications can fetch data
+// using standard HTTP requests.
+// このアプリケーションは、以下のCloud Functionsエンドポイントを通じて
+// サードパーティにREST APIアクセスを提供します。外部アプリケーションは
+// 標準HTTPリクエストを使用してデータを取得できます。
+//
+// Public API Endpoints (6 available):
+// 公開APIエンドポイント (6つ利用可能):
+//
+// 1. GET /countRecipes - Get total recipe count
+// 2. GET /countUsers - Get user statistics with role breakdown
+// 3. GET /countEvents - Get total event count
+// 4. GET /countGroups - Get total country group count
+// 5. GET /getStats - Get all statistics in a single request
+// 6. POST /sendBulkEmail - Send bulk emails (admin only)
+//
+// Base URL: https://us-central1-global-plate-dev.cloudfunctions.net/
+//
+// =============================================================================
+
+// =============================================================================
 // BR (E.1): Cloud Functions - Firestore Data Count Functionality (2nd Gen)
 // BR (E.1): Cloud Functions - Firestoreデータカウント機能 (第2世代)
 //
+// BR (F.1): Innovation - API Access #1
+// BR (F.1): イノベーション - API アクセス #1
+//
 // Recipe Count Function
 // レシピ数カウント機能
+//
+// PUBLIC REST API ENDPOINT / 公開REST APIエンドポイント
+// URL: https://us-central1-global-plate-dev.cloudfunctions.net/countRecipes
+// Method: GET
+// Auth: Not required (public access) / 認証不要（公開アクセス）
 //
 // Features / 機能:
 // - Counts total number of recipes in Firestore / Firestoreのレシピ総数をカウント
@@ -206,8 +239,16 @@ exports.countRecipes = onRequest({ cors: true }, async (req, res) => {
 })
 
 // =============================================================================
+// BR (F.1): Innovation - API Access #2
+// BR (F.1): イノベーション - API アクセス #2
+//
 // User Count Function with Role Breakdown
 // ロール別ユーザー数カウント機能
+//
+// PUBLIC REST API ENDPOINT / 公開REST APIエンドポイント
+// URL: https://us-central1-global-plate-dev.cloudfunctions.net/countUsers
+// Method: GET
+// Auth: Not required (public access) / 認証不要（公開アクセス）
 //
 // Features / 機能:
 // - Counts total number of users / ユーザーの総数をカウント
@@ -258,8 +299,15 @@ exports.countUsers = onRequest({ cors: true }, async (req, res) => {
 })
 
 // =============================================================================
+// BR (F.1): Innovation - API Access #3
+// BR (F.1): イノベーション - API アクセス #3
+//
 // Event Count Function
 // イベント数カウント機能
+//
+// PUBLIC REST API ENDPOINT / 公開REST APIエンドポイント
+// URL: https://us-central1-global-plate-dev.cloudfunctions.net/countEvents
+// Method: GET
 //
 // Features / 機能:
 // - Counts total number of events / イベントの総数をカウント
@@ -290,8 +338,15 @@ exports.countEvents = onRequest({ cors: true }, async (req, res) => {
 })
 
 // =============================================================================
+// BR (F.1): Innovation - API Access #4
+// BR (F.1): イノベーション - API アクセス #4
+//
 // Country Groups Count Function
 // 国別グループ数カウント機能
+//
+// PUBLIC REST API ENDPOINT / 公開REST APIエンドポイント
+// URL: https://us-central1-global-plate-dev.cloudfunctions.net/countGroups
+// Method: GET
 //
 // Features / 機能:
 // - Counts total number of country groups / 国別グループの総数をカウント
@@ -324,8 +379,16 @@ exports.countGroups = onRequest({ cors: true }, async (req, res) => {
 })
 
 // =============================================================================
+// BR (F.1): Innovation - API Access #5
+// BR (F.1): イノベーション - API アクセス #5
+//
 // All Statistics Aggregation Function
 // 全統計情報集約機能
+//
+// PUBLIC REST API ENDPOINT / 公開REST APIエンドポイント
+// URL: https://us-central1-global-plate-dev.cloudfunctions.net/getStats
+// Method: GET
+// Auth: Optional (recommended for production) / オプション（本番環境では推奨）
 //
 // Features / 機能:
 // - Retrieves all collection statistics in a single request / 全コレクションの統計を1回のリクエストで取得
@@ -334,12 +397,18 @@ exports.countGroups = onRequest({ cors: true }, async (req, res) => {
 // - Includes user role breakdown / ユーザーロール別内訳を含む
 //
 // Response / レスポンス:
-// - totalUsers: Total user count / 総ユーザー数
-// - adminUsers: Admin user count / 管理者ユーザー数
-// - studentUsers: Student user count / 学生ユーザー数
-// - totalRecipes: Total recipe count / 総レシピ数
-// - totalEvents: Total event count / 総イベント数
-// - totalGroups: Total group count / 総グループ数
+// {
+//   "success": true,
+//   "stats": {
+//     "totalUsers": 42,
+//     "adminUsers": 5,
+//     "studentUsers": 37,
+//     "totalRecipes": 128,
+//     "totalEvents": 24,
+//     "totalGroups": 15
+//   },
+//   "message": "Successfully retrieved all statistics"
+// }
 // =============================================================================
 exports.getStats = onRequest({ cors: true }, async (req, res) => {
   try {

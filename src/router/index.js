@@ -247,12 +247,16 @@ const routes = [
     },
   },
 
-  // =========================================================================
-  // BR (C.2): Admin Routes (Role-based Access) / 管理者ルート（ロールベースアクセス）
-  // =========================================================================
+  // =============================================================================
+  // BR (F.1): Innovation - Admin Dashboard Route
+  // BR (F.1): イノベーション - 管理者ダッシュボードルート
+  //
+  // Admin-only dashboard route with role verification
+  // ロール検証付きの管理者専用ダッシュボードルート
+  // =============================================================================
 
   {
-    path: '/admin',
+    path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboard,
     meta: {
@@ -387,11 +391,15 @@ const getCurrentUser = () => {
  *
  * 1. Set page title from route meta / ルートメタからページタイトルを設定
  * 2. Check authentication requirements / 認証要件をチェック
- * 3. Redirect unauthenticated users to login / 未認証ユーザーをログインにリダイレクト
- * 4. Redirect authenticated users away from guest pages / 認証済みユーザーをゲストページから離す
+ * 3. BR (C.2): Check admin role requirements / 管理者ロール要件をチェック
+ * 4. Redirect unauthenticated users to login / 未認証ユーザーをログインにリダイレクト
+ * 5. Redirect authenticated users away from guest pages / 認証済みユーザーをゲストページから離す
  *
  * BR (C.1): Firebase Authentication integration
  * BR (C.1): Firebase認証統合
+ *
+ * BR (C.2): Role-based authentication
+ * BR (C.2): ロールベース認証
  */
 router.beforeEach(async (to, from, next) => {
   // -------------------------------------------------------------------------
@@ -440,6 +448,57 @@ router.beforeEach(async (to, from, next) => {
       query: { redirect: to.fullPath }, // Save redirect path / リダイレクトパスを保存
     })
     return
+  }
+
+  /**
+   * Check if route requires admin role
+   * ルートが管理者ロールを必要とするかチェック
+   *
+   * If requiresAdmin is true, verify user has admin role in Firestore
+   * requiresAdminがtrueの場合、Firestoreでユーザーが管理者ロールを持っているか確認
+   */
+  if (to.meta.requiresAdmin && currentUser) {
+    try {
+      // Import Firestore functions
+      // Firestore関数をインポート
+      const { doc, getDoc } = await import('firebase/firestore')
+      const { db } = await import('@/firebase/init')
+
+      // Get user document from Firestore
+      // Firestoreからユーザードキュメントを取得
+      const userDocRef = doc(db, 'users', currentUser.uid)
+      const userDoc = await getDoc(userDocRef)
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data()
+        const userRole = userData.role || 'student'
+
+        console.log(`Admin check - User role: ${userRole}`)
+
+        // If user is not admin, deny access
+        // ユーザーが管理者でない場合、アクセスを拒否
+        if (userRole !== 'admin') {
+          console.log('Access denied: Admin role required')
+          alert('Access denied. This page is only accessible to administrators.')
+          next({ name: 'Dashboard' }) // Redirect to regular dashboard
+          return
+        }
+
+        console.log('Admin access granted')
+      } else {
+        // User document doesn't exist, deny access
+        // ユーザードキュメントが存在しない場合、アクセスを拒否
+        console.log('User document not found, denying admin access')
+        next({ name: 'Dashboard' })
+        return
+      }
+    } catch (error) {
+      // Error checking role, deny access for security
+      // ロールチェック中にエラーが発生、セキュリティのためアクセスを拒否
+      console.error('Error checking admin role:', error)
+      next({ name: 'Dashboard' })
+      return
+    }
   }
 
   // -------------------------------------------------------------------------
