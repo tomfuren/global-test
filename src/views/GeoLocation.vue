@@ -1,7 +1,24 @@
+<!--
+  レストラン検索ページ - Mapbox統合による地図ベースのレストラン検索
+  Restaurant Finder Page - Map-based restaurant search with Mapbox integration
+
+  主要機能 / Key Features:
+  - BR (E.2): 現在地取得 (Geolocation API) / Get current location (Geolocation API)
+  - BR (E.2): レストラン検索 (Mapbox Geocoding API) / Restaurant search (Mapbox Geocoding API)
+  - BR (E.2): ルート案内 (Mapbox Directions API) / Route navigation (Mapbox Directions API)
+  - BR (E.3): アクセシビリティ対応 / Accessibility support
+  - BR (E.4): データエクスポート機能 / Data export functionality
+
+  技術スタック / Technology Stack:
+  - Mapbox GL JS: 地図表示とインタラクション / Map display and interaction
+  - Geolocation API: ユーザーの現在地取得 / Get user's current location
+  - Haversine Formula: 2地点間の距離計算 / Calculate distance between two points
+  - Firebase Firestore: レストランデータストレージ / Restaurant data storage
+-->
 <template>
   <div class="geolocation-page min-vh-100 py-5">
     <div class="container-fluid px-3 px-md-4">
-      <!-- ヘッダー / Header -->
+      <!-- ヘッダーセクション / Header Section -->
       <div class="row mb-4">
         <div class="col-12">
           <div class="text-center">
@@ -14,7 +31,13 @@
         </div>
       </div>
 
-      <!-- アラート表示 / Alert Messages -->
+      <!--
+        アラート表示エリア - 成功/エラーメッセージを表示
+        Alert Display Area - Show success/error messages
+
+        BR (E.3): アクセシビリティ - role="alert"で支援技術に通知
+        BR (E.3): Accessibility - role="alert" notifies assistive technologies
+      -->
       <div v-if="message" class="row mb-4">
         <div class="col-12">
           <div :class="['alert', messageClass, 'd-flex', 'align-items-center']" role="alert">
@@ -25,9 +48,18 @@
       </div>
 
       <div class="row g-4">
-        <!-- 左側: 検索とリスト / Left: Search and List -->
+        <!-- 左カラム: 検索フォームとレストランリスト / Left Column: Search form and restaurant list -->
         <div class="col-lg-5">
-          <!-- 現在地取得 / Get Current Location -->
+          <!--
+            現在地取得カード - ブラウザのGeolocation APIを使用
+            Current Location Card - Uses browser's Geolocation API
+
+            機能 / Features:
+            - navigator.geolocation.getCurrentPosition()でユーザーの現在地を取得
+            - Get user's current location using navigator.geolocation.getCurrentPosition()
+            - 座標を小数点第4位まで表示 (約11mの精度)
+            - Display coordinates to 4 decimal places (approx. 11m accuracy)
+          -->
           <div class="card shadow-sm mb-3">
             <div class="card-body">
               <h5 class="card-title mb-3">
@@ -41,6 +73,7 @@
                 <i class="fas fa-crosshairs me-2"></i>
                 {{ isLoading ? 'Getting Location...' : 'Use Current Location' }}
               </button>
+              <!-- 座標表示エリア - 現在地取得後に表示 / Coordinate display - shown after location acquired -->
               <div v-if="userLocation" class="mt-3 p-3 bg-light rounded">
                 <small class="text-muted d-block">
                   <i class="fas fa-map-pin me-1"></i>
@@ -51,10 +84,20 @@
             </div>
           </div>
 
-          <!-- レストラン検索 / Restaurant Search -->
+          <!--
+            レストラン検索カード - 住所検索とフィルタリング
+            Restaurant Search Card - Address search and filtering
+
+            機能 / Features:
+            - Mapbox Geocoding API: 住所を座標に変換 / Convert address to coordinates
+            - Enterキー対応: @keyup.enterで検索実行 / Enter key support: execute search with @keyup.enter
+            - カテゴリーフィルタ: レストラン種別で絞り込み / Category filter: filter by restaurant type
+            - 検索半径: 1-100kmの範囲でスライダー調整 / Search radius: adjust with slider from 1-100km
+          -->
           <div class="card shadow-sm mb-3">
             <div class="card-body">
               <h5 class="card-title mb-3"><i class="fas fa-search me-2"></i>Search Restaurants</h5>
+              <!-- 住所検索入力フィールド / Address search input field -->
               <div class="input-group mb-3">
                 <input
                   v-model="searchQuery"
@@ -72,7 +115,12 @@
                 </button>
               </div>
 
-              <!-- カテゴリーフィルター / Category Filter -->
+              <!--
+                カテゴリーフィルター - レストランタイプで絞り込み
+                Category Filter - Filter by restaurant type
+                TODO: Firestoreクエリと連動させる機能を追加
+                TODO: Add functionality to sync with Firestore query
+              -->
               <div class="mb-3">
                 <label class="form-label small text-muted">Restaurant Type:</label>
                 <select v-model="selectedCategory" class="form-select form-select-sm">
@@ -83,7 +131,12 @@
                 </select>
               </div>
 
-              <!-- 距離範囲 / Distance Range -->
+              <!--
+                検索半径スライダー - 距離範囲を動的に調整
+                Search Radius Slider - Dynamically adjust distance range
+                範囲: 1-100km / Range: 1-100km
+                デフォルト: 5km / Default: 5km
+              -->
               <div>
                 <label class="form-label small text-muted">
                   Search Radius: {{ searchRadius }}km
@@ -100,28 +153,47 @@
             </div>
           </div>
 
-          <!-- レストランリスト / Restaurant List -->
+          <!--
+            レストランリストカード - 検索結果を距離順で表示
+            Restaurant List Card - Display search results sorted by distance
+
+            表示状態 / Display States:
+            1. ローディング中: スピナー表示 / Loading: Show spinner
+            2. 結果0件: 空状態メッセージ / No results: Empty state message
+            3. 結果あり: レストランリスト表示 / Results found: Show restaurant list
+
+            各レストラン項目に表示される情報 / Information shown for each restaurant:
+            - 名前 / Name
+            - 住所 / Address
+            - 距離 (km) - Haversine公式で計算 / Distance (km) - calculated using Haversine formula
+            - 評価 (星) / Rating (stars)
+            - ルート案内ボタン / Get Directions button
+          -->
           <div class="card shadow-sm">
             <div class="card-body">
               <h5 class="card-title mb-3">
                 <i class="fas fa-utensils me-2"></i>
                 Nearby Restaurants
+                <!-- 結果件数バッジ / Result count badge -->
                 <span v-if="restaurants.length > 0" class="badge bg-primary ms-2">
                   {{ restaurants.length }}
                 </span>
               </h5>
 
+              <!-- ローディング状態 - データ取得中 / Loading state - fetching data -->
               <div v-if="isLoading" class="text-center py-4">
                 <div class="spinner-border text-primary" role="status">
                   <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
 
+              <!-- 空状態 - 検索結果なし / Empty state - no search results -->
               <div v-else-if="restaurants.length === 0" class="text-center py-4 text-muted">
                 <i class="fas fa-info-circle fa-2x mb-2"></i>
                 <p class="mb-0">No restaurants found. Try searching a location.</p>
               </div>
 
+              <!-- レストラン一覧 - クリックで地図上の位置にフライ / Restaurant list - click to fly to location on map -->
               <div v-else class="restaurant-list">
                 <div
                   v-for="(restaurant, index) in restaurants"
@@ -141,16 +213,24 @@
                         {{ restaurant.address }}
                       </p>
                       <div class="d-flex align-items-center">
+                        <!-- 距離バッジ / Distance badge -->
                         <span class="badge bg-light text-dark me-2">
                           <i class="fas fa-walking me-1"></i>
                           {{ restaurant.distance }} km
                         </span>
+                        <!-- 評価バッジ (評価がある場合のみ表示) / Rating badge (only shown if rating exists) -->
                         <span v-if="restaurant.rating" class="badge bg-warning text-dark">
                           <i class="fas fa-star me-1"></i>
                           {{ restaurant.rating }}
                         </span>
                       </div>
                     </div>
+                    <!--
+                      ルート案内ボタン - Mapbox Directions APIを使用
+                      Get Directions button - Uses Mapbox Directions API
+                      @click.stopで親要素のクリックイベントを防止
+                      @click.stop prevents parent element's click event
+                    -->
                     <button
                       @click.stop="getDirections(restaurant)"
                       class="btn btn-sm btn-outline-primary"
@@ -165,14 +245,33 @@
           </div>
         </div>
 
-        <!-- 右側: マップ表示 / Right: Map Display -->
+        <!--
+          右カラム: Mapbox地図表示とルート情報
+          Right Column: Mapbox map display and route information
+        -->
         <div class="col-lg-7">
           <div class="card shadow-sm">
             <div class="card-body p-0">
-              <!-- マップコンテナ / Map Container -->
+              <!--
+                Mapboxマップコンテナ
+                Mapbox map container
+
+                地図の初期化: onMounted()で実行 / Map initialization: executed in onMounted()
+                中心座標: メルボルン (37.8136°S, 144.9631°E) / Center: Melbourne (37.8136°S, 144.9631°E)
+                ズームレベル: 12 / Zoom level: 12
+                スタイル: mapbox://styles/mapbox/streets-v11 (標準道路地図) / Style: streets-v11 (standard street map)
+              -->
               <div id="map" class="map-container"></div>
 
-              <!-- ルート情報 / Route Information -->
+              <!--
+                ルート情報パネル - ルート検索後に表示
+                Route Information Panel - Displayed after route search
+
+                表示内容 / Display content:
+                - 所要時間: Mapbox Directions APIから取得 / Duration: from Mapbox Directions API
+                - 距離: Mapbox Directions APIから取得 / Distance: from Mapbox Directions API
+                - クリアボタン: ルート表示を削除 / Clear button: remove route display
+              -->
               <div v-if="routeInfo" class="p-3 border-top">
                 <h6 class="mb-2">
                   <i class="fas fa-route me-2 text-primary"></i>
@@ -211,48 +310,109 @@
 </template>
 
 <script setup>
+/**
+ * GeoLocation.vue - レストラン検索スクリプト
+ * GeoLocation.vue - Restaurant Search Script
+ *
+ * このファイルは地図ベースのレストラン検索機能を提供します
+ * This file provides map-based restaurant search functionality
+ *
+ * API使用 / API Usage:
+ * - Geolocation API: ユーザーの現在地取得 / Get user's current location
+ * - Mapbox Geocoding API: 住所→座標変換 / Address to coordinates conversion
+ * - Mapbox Directions API: ルート検索 / Route search
+ * - Firebase Firestore: レストランデータ管理 / Restaurant data management
+ */
+
+// Vue Composition API
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
-import mapboxgl from 'mapbox-gl'
+import axios from 'axios' // HTTP クライアント / HTTP client
+import mapboxgl from 'mapbox-gl' // Mapbox地図ライブラリ / Mapbox map library
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-// 1. Firestoreのインポートを追加（既存のimportの下に追加）
+// Firebase Firestore インポート / Firebase Firestore imports
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase/init'
 
-// BR (E.2): MapBox API キー
-// MapBox API Key - Replace with your actual API key
+/**
+ * BR (E.2): Mapbox APIキー
+ * BR (E.2): Mapbox API Key
+ *
+ * 本番環境では環境変数に移行すること
+ * Should be moved to environment variables in production
+ */
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoidGltMDcxMXZyYyIsImEiOiJjbWd3eGp2b28wY29pMm5weGVpNncxM25zIn0.Xk0HpuaBU_k04XucsuSK7Q'
 mapboxgl.accessToken = MAPBOX_TOKEN
 
-// State
+/**
+ * リアクティブステート / Reactive State
+ */
+
+// ユーザーの現在地 { latitude, longitude } / User's current location
 const userLocation = ref(null)
+
+// 検索クエリ (住所または地名) / Search query (address or place name)
 const searchQuery = ref('')
+
+// 選択されたレストランカテゴリ / Selected restaurant category
 const selectedCategory = ref('restaurant')
+
+// 検索半径 (km) - デフォルト5km / Search radius (km) - default 5km
 const searchRadius = ref(5)
+
+// 検索結果のレストラン配列 / Array of search result restaurants
 const restaurants = ref([])
+
+// 現在選択されているレストラン / Currently selected restaurant
 const selectedRestaurant = ref(null)
+
+// ルート情報 { duration, distance } / Route information
 const routeInfo = ref(null)
+
+// ローディング状態フラグ / Loading state flag
 const isLoading = ref(false)
+
+// 表示メッセージ / Display message
 const message = ref('')
+
+// メッセージタイプ ('success' | 'error') / Message type
 const messageType = ref('success')
 
-// Map instance
+/**
+ * Mapインスタンスとマーカー / Map instance and markers
+ */
+
+// Mapboxマップインスタンス (リアクティブにする必要なし) / Mapbox map instance (no need to be reactive)
 let map = null
+
+// ユーザー位置マーカー / User location marker
 let userMarker = null
+
+// レストランマーカー配列 / Restaurant markers array
 const restaurantMarkers = ref([])
 
-// Computed
+/**
+ * 算出プロパティ / Computed Properties
+ */
+
+// メッセージのBootstrapクラスを返す / Return Bootstrap class for message
 const messageClass = computed(() => {
   return messageType.value === 'error' ? 'alert-danger' : 'alert-success'
 })
 
+// メッセージアイコンのクラスを返す / Return icon class for message
 const messageIcon = computed(() => {
   return messageType.value === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'
 })
 
-// Helper functions
+/**
+ * ヘルパー関数: メッセージを表示 (5秒後に自動消去)
+ * Helper function: Show message (auto-clear after 5 seconds)
+ *
+ * @param {string} msg - 表示メッセージ / Message to display
+ * @param {string} type - メッセージタイプ ('success' | 'error') / Message type
+ */
 const showMessage = (msg, type = 'success') => {
   message.value = msg
   messageType.value = type
@@ -445,20 +605,48 @@ const searchNearbyRestaurants = async (latitude, longitude) => {
 }
 
 /**
- * 2地点間の距離を計算（Haversine formula）
- * Calculate distance between two points using Haversine formula
+ * 2地点間の距離を計算 - Haversine公式
+ * Calculate distance between two points - Haversine formula
+ *
+ * @param {number} lat1 - 地点1の緯度 (度) / Latitude of point 1 (degrees)
+ * @param {number} lon1 - 地点1の経度 (度) / Longitude of point 1 (degrees)
+ * @param {number} lat2 - 地点2の緯度 (度) / Latitude of point 2 (degrees)
+ * @param {number} lon2 - 地点2の経度 (度) / Longitude of point 2 (degrees)
+ * @returns {number} 距離 (km) / Distance in kilometers
+ *
+ * Haversine公式の説明 / Haversine formula explanation:
+ * 球面上の2点間の大円距離を計算する公式
+ * Formula to calculate great-circle distance between two points on a sphere
+ *
+ * 計算手順 / Calculation steps:
+ * 1. 緯度・経度の差をラジアンに変換 / Convert lat/lon differences to radians
+ * 2. Haversine関数を適用 / Apply Haversine function
+ * 3. 地球の半径を掛けて距離を算出 / Multiply by Earth's radius to get distance
+ *
+ * 精度 / Accuracy:
+ * - 地球を完全な球体と仮定 (実際は楕円体) / Assumes Earth is a perfect sphere (actually an ellipsoid)
+ * - 短距離 (< 1000km) では高精度 / High accuracy for short distances (< 1000km)
+ * - 誤差: 約0.5% / Error: approximately 0.5%
  */
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371 // 地球の半径 (km) / Earth's radius in km
+
+  // 緯度・経度の差をラジアンに変換 / Convert lat/lon differences to radians
   const dLat = ((lat2 - lat1) * Math.PI) / 180
   const dLon = ((lon2 - lon1) * Math.PI) / 180
+
+  // Haversine公式のメイン計算 / Main Haversine formula calculation
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2)
+
+  // 中心角の計算 / Calculate central angle
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  // 距離 = 半径 × 中心角 / Distance = radius × central angle
   return R * c
 }
 
